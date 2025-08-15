@@ -7,7 +7,6 @@ import { CreateBasvuruDto } from './dto/create.dto';
 import * as path from 'path';
 import * as fs from 'fs';
 import { UpdateBasvuruDto } from './dto/update.dto';
-import { Personel } from 'src/personel/entities/personel.entity';
 
 @Injectable()
 export class ProjeBasvuruService {
@@ -44,8 +43,7 @@ export class ProjeBasvuruService {
 
 
         const queryBuilder = this.dataSource.getRepository(ProjeBasvuru).createQueryBuilder('basvuru')
-            .leftJoinAndSelect('basvuru.Firma', 'Firma')
-            .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+            //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
             .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
             .where('basvuru.KullaniciID = :KullaniciID', { KullaniciID: userId });
 
@@ -54,8 +52,8 @@ export class ProjeBasvuruService {
         // Filtreleme işlemi
         Object.keys(filter).forEach((key) => {
             const validFilterFields = {
-                'Firma.FirmaAdi': 'Firma.FirmaAdi',
-                'Teknokent.TeknokentAdi': 'Teknokent.TeknokentAdi',
+                'Kullanici.FirmaAdi': 'Kullanici.FirmaAdi',
+                //'Teknokent.TeknokentAdi': 'Teknokent.TeknokentAdi',
                 'OnerilenProjeIsmi': 'basvuru.OnerilenProjeIsmi'
             };
 
@@ -65,12 +63,12 @@ export class ProjeBasvuruService {
         });
 
         // Sıralama işlemi
-        const validSortFields = ['Teknokent', 'Firma', 'BasvuruID', 'OnerilenProjeIsmi'];
+        const validSortFields = ['Teknokent','Firma', 'BasvuruID', 'OnerilenProjeIsmi'];
         if (sort && validSortFields.includes(sort)) {
-            if (sort === 'Firma') {
-                queryBuilder.orderBy('Firma.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
-            } else if (sort === 'Teknokent') {
+           /* if (sort === 'Teknokent') {
                 queryBuilder.orderBy('Teknokent.TeknokentAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+            } else */if (sort === 'Firma') {
+                queryBuilder.orderBy('Kullanici.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
             } else {
                 queryBuilder.orderBy(`basvuru.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
             }
@@ -105,14 +103,9 @@ export class ProjeBasvuruService {
 
         const queryBuilder = this.dataSource.getRepository(ProjeBasvuru)
             .createQueryBuilder('basvuru')
-            .innerJoin('basvuru.Firma', 'Firma')
-            .innerJoin('basvuru.Teknokent', 'Teknokent')
+            //.innerJoin('basvuru.Teknokent', 'Teknokent')
             .innerJoin('basvuru.Kullanici', 'Kullanici')
-            .innerJoin('Firma.Kullanicilar', 'Kullanicilar')
-            .where(new Brackets(qb => {
-                qb.where('basvuru.KullaniciID = :userId', { userId })
-                    .orWhere('Kullanicilar.id IN (:...userIds)', { userIds: [userId] });
-            }))
+            .where('basvuru.KullaniciID = :userId', { userId })
             .andWhere('basvuru.IsDeleted = :IsDeleted', { IsDeleted: false });
 
 
@@ -147,8 +140,7 @@ export class ProjeBasvuruService {
 
 
         const queryBuilder = this.dataSource.getRepository(ProjeBasvuru).createQueryBuilder('basvuru')
-            .leftJoinAndSelect('basvuru.Firma', 'Firma')
-            .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+            //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
             .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
             .andWhere('basvuru.IsDeleted = :IsDeleted', { IsDeleted: false })
             .andWhere('basvuru.Durum = :Durum', { Durum: 'Bekliyor' });
@@ -158,8 +150,8 @@ export class ProjeBasvuruService {
         // Filtreleme işlemi
         Object.keys(filter).forEach((key) => {
             const validFilterFields = {
-                'Firma.FirmaAdi': 'Firma.FirmaAdi',
-                'Teknokent.TeknokentAdi': 'Teknokent.TeknokentAdi',
+                'Kullanici.FirmaAdi': 'Kullanici.FirmaAdi',
+                //'Teknokent.TeknokentAdi': 'Teknokent.TeknokentAdi',
                 'OnerilenProjeIsmi': 'basvuru.OnerilenProjeIsmi'
             };
 
@@ -169,12 +161,12 @@ export class ProjeBasvuruService {
         });
 
         // Sıralama işlemi
-        const validSortFields = ['Teknokent', 'Firma', 'BasvuruID', 'OnerilenProjeIsmi'];
+        const validSortFields = ['Teknokent', 'BasvuruID', 'OnerilenProjeIsmi'];
         if (sort && validSortFields.includes(sort)) {
-            if (sort === 'Firma') {
-                queryBuilder.orderBy('Firma.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
-            } else if (sort === 'Teknokent') {
+            /* if (sort === 'Teknokent') {
                 queryBuilder.orderBy('Teknokent.TeknokentAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+            } else */if (sort === 'Firma') {
+                queryBuilder.orderBy('Kullanici.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
             } else {
                 queryBuilder.orderBy(`basvuru.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
             }
@@ -191,7 +183,7 @@ export class ProjeBasvuruService {
     }
 
 
-    async getBasvurularTeknoAdmin(userId: number, query: any) {
+    /* async getBasvurularTeknoAdmin(userId: number, query: any) {
         const page = parseInt(query.page) || 1;
         const limit = parseInt(query.items_per_page) || 10;
         const sort = query.sort || 'BasvuruID';
@@ -274,7 +266,7 @@ export class ProjeBasvuruService {
             page,
             lastPage: Math.ceil(total / limit),
         };
-    }
+    } */
 
 
     async getBasvuru(userId: number, BasvuruID: number) {
@@ -294,8 +286,7 @@ export class ProjeBasvuruService {
             const queryBuilder = this.dataSource
                 .getRepository(ProjeBasvuru)
                 .createQueryBuilder('basvuru')
-                .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                 .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                 .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID });
 
@@ -330,7 +321,7 @@ export class ProjeBasvuruService {
             throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
         }
         try {
-            const queryBuilder = await this.dataSource
+            const queryBuilder = this.dataSource
                 .getRepository(ProjeBasvuru)
                 .createQueryBuilder('basvuru')
                 .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: BasvuruID })
@@ -390,7 +381,6 @@ export class ProjeBasvuruService {
                 filePath = this.moveFileToUploads(file);
             }
             const basvuru = await queryRunner.manager.save(ProjeBasvuru, {
-                FirmaID: data.FirmaID,
                 KullaniciID: userId,
                 TeknokentID: data.TeknokentID,
                 OnerilenProjeIsmi: data.OnerilenProjeIsmi,
@@ -407,8 +397,7 @@ export class ProjeBasvuruService {
             await queryRunner.commitTransaction();
 
             return await this.basvuruRepository.createQueryBuilder('basvuru')
-                .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                 .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                 .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: basvuru.BasvuruID })
                 .getOne();
@@ -480,7 +469,6 @@ export class ProjeBasvuruService {
                 ProjeBasvuru,
                 { BasvuruID: data.BasvuruID, KullaniciID: userId },
                 {
-                    FirmaID: data.FirmaID,
                     TeknokentID: data.TeknokentID,
                     OnerilenProjeIsmi: data.OnerilenProjeIsmi,
                     ProjeKapsamindakiCozum: data.ProjeKapsamindakiCozum,
@@ -499,8 +487,7 @@ export class ProjeBasvuruService {
 
             // Güncellenmiş veriyi getir
             return await this.basvuruRepository.createQueryBuilder('basvuru')
-                .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                 .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                 .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: data.BasvuruID })
                 .getOne();
@@ -575,8 +562,7 @@ export class ProjeBasvuruService {
                 await this.basvuruRepository.save(talep);
 
                 return await this.basvuruRepository.createQueryBuilder('basvuru')
-                    .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                    .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                    //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                     .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                     .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: data.itemId })
                     .getOne();
@@ -624,8 +610,7 @@ export class ProjeBasvuruService {
 
                 await this.basvuruRepository.save(talep);
                 return await this.basvuruRepository.createQueryBuilder('basvuru')
-                    .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                    .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                    //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                     .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                     .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: data.itemId })
                     .getOne();
@@ -680,8 +665,7 @@ export class ProjeBasvuruService {
 
                 await this.basvuruRepository.save(talep);
                 return await this.basvuruRepository.createQueryBuilder('basvuru')
-                    .leftJoinAndSelect('basvuru.Firma', 'Firma')
-                    .leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
+                    //.leftJoinAndSelect('basvuru.Teknokent', 'Teknokent')
                     .leftJoinAndSelect('basvuru.Kullanici', 'Kullanici')
                     .where('basvuru.BasvuruID = :BasvuruID', { BasvuruID: data.itemId })
                     .getOne();

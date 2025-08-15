@@ -32,7 +32,7 @@ async function bootstrap() {
     origin: (origin, callback) => {
       const allowedDomains = process.env.NODE_ENV !== 'production' ? 
       ['http://localhost:5173','http://localhost:5174'] : 
-      ['https://argeassist.com', 'https://panel.argeassist.com', 'https://www.panel.argeassist.com','https://musteri-paneli.argeassist.com'];
+      ['https://argeassist.com', 'https://musteri-paneli.argeassist.com'];
 
       if (!origin || allowedDomains.includes(origin)) {
         callback(null, true);
@@ -76,8 +76,8 @@ async function bootstrap() {
       referrerPolicy: { policy: 'same-origin' },
     }),
   );
-  await app.listen(5005);
+  await app.listen(5001);
   //await app.listen(5005,'192.168.1.2');
-  console.log('Backend çalışıyor: http://localhost:5005');
+  console.log('Backend çalışıyor: http://localhost:5001');
 }
 bootstrap();

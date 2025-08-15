@@ -1,6 +1,4 @@
-import { Firma } from 'src/firmalar/entities/firma.entity';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import {
     Entity,
     Column,
@@ -14,9 +12,6 @@ import {
 export class ProjeBasvuru {
     @PrimaryGeneratedColumn({ type: 'int' })
     BasvuruID: number;
-
-    @Column({ type: 'int', nullable: false })
-    FirmaID: number;
 
     @Column({ type: 'int', nullable: false })
     KullaniciID: number;
@@ -57,15 +52,11 @@ export class ProjeBasvuru {
     @Column({ type: 'varchar', length: 255, nullable: true })
     DosyaEki: string;
 
-    @ManyToOne(() => Firma, firma => firma.Projeler, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'FirmaID' })
-    Firma: Firma;
-
     @ManyToOne(() => Kullanicilar, kullanici => kullanici.id)
     @JoinColumn({ name: 'KullaniciID' })
     Kullanici: Kullanicilar;
 
-    @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID, { nullable: true })
+    /* @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID, { nullable: true })
     @JoinColumn({ name: 'TeknokentID' })
-    Teknokent: Teknokentler;
+    Teknokent: Teknokentler; */
 }

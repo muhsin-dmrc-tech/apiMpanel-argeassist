@@ -1,10 +1,4 @@
-import { BordroKayitlari } from 'src/bordro-kayitlari/entities/bordro-kayitlari.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
-import { IzinTalepleri } from 'src/izin-talepleri/entities/izin-talepleri.entity';
-import { KullaniciGruplari } from 'src/kullanici-gruplari/entities/kullanici-gruplari.entity';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
-import { PDKS } from 'src/pdks/entities/pdks.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import {
   Entity,
   Column,
@@ -68,27 +62,5 @@ export class Personel {
   @JoinColumn({ name: 'KullaniciID' })
   Kullanici: Kullanicilar;
 
-  @ManyToOne(() => KullaniciGruplari, grup => grup.GrupID, { nullable: true })
-  @JoinColumn({ name: 'GrupID' })
-  Grup: KullaniciGruplari;
-
-  @OneToMany(() => PDKS, pdks => pdks.Personel)
-  PdksKayitlari: PDKS[];
-
-  @OneToMany(() => BordroKayitlari, bordro => bordro.Personel)
-  BordroKayitlari: BordroKayitlari[];
-
-  @OneToMany(() => IzinTalepleri, izin => izin.Personel)
-  IzinTalepleri: IzinTalepleri[];
-
-
-  // Teknik olarak sadece TS desteği için tanımlanıyor
-  @ManyToOne(() => Firma, { createForeignKeyConstraints: false, nullable: true })
-  @JoinColumn({ name: 'IliskiID' })
-  Firma?: Firma;
-
-  @ManyToOne(() => Teknokentler, { createForeignKeyConstraints: false, nullable: true })
-  @JoinColumn({ name: 'IliskiID' })
-  Teknokent?: Teknokentler;
-
+  
 }

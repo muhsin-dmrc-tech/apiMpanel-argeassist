@@ -3,10 +3,6 @@ import { Optional } from '@nestjs/common';
 
 
 export class CreateBasvuruDto {
-  @IsNotEmpty({ message: 'Firma ID zorunludur' })
-  @IsNumber({}, { message: 'Firma ID number türünde olmalıdır' })
-  FirmaID: number;
-
   @IsNotEmpty({ message: 'Teknokent ID zorunludur' })
   @IsNumber({}, { message: 'Teknokent ID number türünde olmalıdır' })
   TeknokentID: number;

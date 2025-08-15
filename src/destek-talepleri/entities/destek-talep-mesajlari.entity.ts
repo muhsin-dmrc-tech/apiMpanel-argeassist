@@ -1,8 +1,6 @@
 import { DestekTipi } from 'src/destek-tipleri/entities/destek-tipleri.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
 import { ProjeBasvuru } from 'src/proje-basvuru/entities/proje.basvuru.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import {
     Entity,
     Column,

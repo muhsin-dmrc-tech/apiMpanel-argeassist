@@ -194,7 +194,7 @@ export class AuthController {
     if (!req.user) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
-    return this.authService.updateUserInfo(data?.fullName, data?.phoneNumber, Number(req.user.userId));
+    return this.authService.updateUserInfo(data?.fullName,data?.firmaAdi, data?.phoneNumber, Number(req.user.userId));
   }
 
 

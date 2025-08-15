@@ -3,7 +3,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -14,14 +14,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Kullanicilar } from './kullanicilar/entities/kullanicilar.entity';
 import { KullaniciBildirimleri } from './kullanici-bildirimleri/entities/kullanici-bildirimleri.entity';
-import { SohbetMesajlari } from './sohbetler/entities/sohbet-mesajlari.entity';
-import { SohbetOkunmaBilgileri } from './sohbetler/entities/sohbet-okunma-bilgileri.entity';
 import { KullaniciCihazlari } from './kullanicilar/entities/kullanici-cihazlari.entity';
-import { MpKullanicilar } from './mp-kullanicilar/entities/mp-kullanicilar.entity';
 
-@WebSocketGateway(4000, {
+@WebSocketGateway(3005, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://argeassist.com', 'https://panel.argeassist.com','https://musteri-paneli.argeassist.com'],
+    origin: ['http://localhost:5173', 'https://argeassist.com', 'https://musteri-paneli.argeassist.com'],
   },
 })
 @Injectable()
@@ -30,10 +27,8 @@ export class AppGateway
   @WebSocketServer()
   server: Server;
   private static processingMessages3 = new Map<string, boolean>();
-  private static processingMessages3Mp = new Map<string, boolean>();
   private static processingMessages: Map<string, Promise<void>> = new Map();
   private static processingNewMessages: Map<string, Promise<void>> = new Map();
-  private static processingMessagesMp: Map<string, Promise<void>> = new Map();
   private static processingMessagesFind = new Map<string, boolean>();
   private connectedClients: Map<string, Socket> = new Map();
   private static lastRequested = new Map<number, number>();
@@ -46,145 +41,76 @@ export class AppGateway
     this.connectedClients.clear();
   }
 
-  private async handleConnectionGeneric(
-    client: Socket,
-    roomPrefix: string,
-    repository: Repository<any>,
-    eventNames: { join: string; success: string; error: string }
-  ) {
+
+
+  handleConnection(client: Socket) {
     try {
+      // Maksimum dinleyici sayısını ayarla
       client.setMaxListeners(20);
 
+      // Bağlantı zaman aşımı kontrolü (30 saniye)
       const timeoutId = setTimeout(() => {
-        if (!client.rooms.has(`${roomPrefix}${client.handshake.query.userId}`)) {
+        if (!client.rooms.has(`user_${client.handshake.query.userId}`)) {
+          //console.log(`Bağlantı zaman aşımı: ${client.id}`);
           client.disconnect(true);
         }
       }, 30000);
 
+      // Client'ı kaydet
       this.connectedClients.set(client.id, client);
 
-      client.on(eventNames.join, async (userId: number) => {
+      // Odaya katılma olayını dinle
+      client.on('joinRoom', async (userId: number) => {
         try {
-          if (!userId) throw new Error('Geçersiz kullanıcı ID');
+          if (!userId) {
+            throw new Error('Geçersiz kullanıcı ID');
+          }
 
-          const kullanici = await repository.findOne({ where: { id: userId } });
-          if (!kullanici) throw new Error('Kullanıcı bulunamadı');
+          // Kullanıcının varlığını kontrol et
+          const kullanici = await this.dataSource.getRepository(Kullanicilar).findOne({
+            where: { id: userId }
+          });
 
+          if (!kullanici) {
+            throw new Error('Kullanıcı bulunamadı');
+          }
+
+          // Zaman aşımını temizle
           clearTimeout(timeoutId);
 
-          const roomName = `${roomPrefix}${userId}`;
+          // Odaya katıl
+          const roomName = `user_${userId}`;
           await client.join(roomName);
 
-          await repository.update(userId, { isActive: true });
-
-          client.emit(eventNames.success, {
-            message: 'Bağlantı başarılı',
+          // Kullanıcı durumunu güncelle
+          await this.dataSource.getRepository(Kullanicilar).update(
             userId,
+            { isActive: true }
+          );
+
+          // Başarılı bağlantı bildirimi
+          client.emit('connectionSuccess', {
+            message: 'Bağlantı başarılı',
+            userId: userId,
             socketId: client.id
           });
         } catch (error) {
           console.error('Oda katılım hatası:', error);
-          client.emit(eventNames.error, { message: error.message });
+          client.emit('connectionError', { message: error.message });
           client.disconnect(true);
         }
       });
 
-    } catch {
+    } catch (error) {
+      //console.error('Bağlantı hatası:', error);
       client.disconnect(true);
     }
   }
-
-  handleConnection(client: Socket) {
-    this.handleConnectionGeneric(
-      client,
-      'user_',
-      this.dataSource.getRepository(Kullanicilar),
-      { join: 'joinRoom', success: 'connectionSuccess', error: 'connectionError' }
-    );
-  }
-
-  handleConnection1(client: Socket) {
-    this.handleConnectionGeneric(
-      client,
-      'userMp_',
-      this.dataSource.getRepository(MpKullanicilar),
-      { join: 'joinRoomMp', success: 'connectionSuccessMp', error: 'connectionErrorMp' }
-    );
-  }
-
-
-
-
-  /*  handleConnection(client: Socket) {
-     try {
-       // Maksimum dinleyici sayısını ayarla
-       client.setMaxListeners(20);
- 
-       // Bağlantı zaman aşımı kontrolü (30 saniye)
-       const timeoutId = setTimeout(() => {
-         if (!client.rooms.has(`user_${client.handshake.query.userId}`)) {
-           //console.log(`Bağlantı zaman aşımı: ${client.id}`);
-           client.disconnect(true);
-         }
-       }, 30000);
- 
-       // Client'ı kaydet
-       this.connectedClients.set(client.id, client);
- 
-       // Odaya katılma olayını dinle
-       client.on('joinRoom', async (userId: number) => {
-         try {
-           if (!userId) {
-             throw new Error('Geçersiz kullanıcı ID');
-           }
- 
-           // Kullanıcının varlığını kontrol et
-           const kullanici = await this.dataSource.getRepository(Kullanicilar).findOne({
-             where: { id: userId }
-           });
- 
-           if (!kullanici) {
-             throw new Error('Kullanıcı bulunamadı');
-           }
- 
-           // Zaman aşımını temizle
-           clearTimeout(timeoutId);
- 
-           // Odaya katıl
-           const roomName = `user_${userId}`;
-           await client.join(roomName);
- 
-           // Kullanıcı durumunu güncelle
-           await this.dataSource.getRepository(Kullanicilar).update(
-             userId,
-             { isActive: true }
-           );
- 
-           // Başarılı bağlantı bildirimi
-           client.emit('connectionSuccess', {
-             message: 'Bağlantı başarılı',
-             userId: userId,
-             socketId: client.id
-           });
-         } catch (error) {
-           console.error('Oda katılım hatası:', error);
-           client.emit('connectionError', { message: error.message });
-           client.disconnect(true);
-         }
-       });
- 
-     } catch (error) {
-       //console.error('Bağlantı hatası:', error);
-       client.disconnect(true);
-     }
-   } */
 
   handleDisconnect(client: Socket) {
     client.removeAllListeners();
     this.connectedClients.delete(client.id);
   }
-
-
 
   async processStatus(data: any) {
     const kullaniciRepo = this.dataSource.getRepository(Kullanicilar);
@@ -397,11 +323,11 @@ export class AppGateway
       AppGateway.processingMessages3.set(messageKey, true);
 
       try {
-        const mesajRepo = this.dataSource.getRepository(SohbetMesajlari);
-        const okunmaBilgileriRepo = this.dataSource.getRepository(SohbetOkunmaBilgileri);
+        /* const mesajRepo = this.dataSource.getRepository(SohbetMesajlari);
+        const okunmaBilgileriRepo = this.dataSource.getRepository(SohbetOkunmaBilgileri); */
 
         // Önce mesajın varlığını kontrol et
-        const mesaj = await mesajRepo.findOne({
+       /*  const mesaj = await mesajRepo.findOne({
           where: { MesajID: data.MesajID },
           relations: {
             Sohbet: {
@@ -432,10 +358,10 @@ export class AppGateway
         okunmaBilgileri.KullaniciID = data.okuyanKullaniciId;
         okunmaBilgileri.OkunduMu = true;
         okunmaBilgileri.OkunmaTarihi = new Date();
-        await okunmaBilgileriRepo.save(okunmaBilgileri);
+        await okunmaBilgileriRepo.save(okunmaBilgileri); */
 
         // Bildirim gönder
-        if (mesaj.Sohbet?.Kullanicilar?.length > 0) {
+       /*  if (mesaj.Sohbet?.Kullanicilar?.length > 0) {
           const uniqueUsers = new Set(mesaj.Sohbet.Kullanicilar.map(k => k.KullaniciID));
           uniqueUsers.forEach(userId => {
             const room = `user_${userId}`;
@@ -447,7 +373,7 @@ export class AppGateway
               success: true,
             });
           });
-        }
+        } */
       } finally {
         // İşlem bittiğinde kilidi kaldır
         AppGateway.processingMessages3.delete(messageKey);
@@ -485,7 +411,7 @@ export class AppGateway
     }
 
     // Yeni promise oluştur ve map'e ekle
-    const processingPromise = this.processNewMesaj(userId, data);
+    const processingPromise = this.processNewMesaj(userId,data);
     AppGateway.processingNewMessages.set(statusKey, processingPromise);
     try {
       await processingPromise;
@@ -518,185 +444,4 @@ export class AppGateway
     const room = `user_${userId}`;
     this.server.to(room).emit('gruptanAyril', data);
   }
-
-
-
-
-
-
-
-  //Müşteri Paneli Bölümü *************---------------------------
-
-  /*  handleConnection1(client: Socket) {
-     try {
-       // Maksimum dinleyici sayısını ayarla
-       client.setMaxListeners(20);
- 
-       // Bağlantı zaman aşımı kontrolü (30 saniye)
-       const timeoutId = setTimeout(() => {
-         if (!client.rooms.has(`userMp_${client.handshake.query.userId}`)) {
-           //console.log(`Bağlantı zaman aşımı: ${client.id}`);
-           client.disconnect(true);
-         }
-       }, 30000);
- 
-       // Client'ı kaydet
-       this.connectedClients.set(client.id, client);
- 
-       // Odaya katılma olayını dinle
-       client.on('joinRoomMp', async (userId: number) => {
-         try {
-           if (!userId) {
-             throw new Error('Geçersiz kullanıcı ID');
-           }
- 
-           // Kullanıcının varlığını kontrol et
-           const kullanici = await this.dataSource.getRepository(MpKullanicilar).findOne({
-             where: { id: userId }
-           });
- 
-           if (!kullanici) {
-             throw new Error('Kullanıcı bulunamadı');
-           }
- 
-           // Zaman aşımını temizle
-           clearTimeout(timeoutId);
- 
-           // Odaya katıl
-           const roomName = `userMp_${userId}`;
-           await client.join(roomName);
- 
-           // Kullanıcı durumunu güncelle
-           await this.dataSource.getRepository(MpKullanicilar).update(
-             userId,
-             { isActive: true }
-           );
- 
-           // Başarılı bağlantı bildirimi
-           client.emit('connectionSuccessMp', {
-             message: 'Bağlantı başarılı',
-             userId: userId,
-             socketId: client.id
-           });
-         } catch (error) {
-           console.error('Oda katılım hatası:', error);
-           client.emit('connectionErrorMp', { message: error.message });
-           client.disconnect(true);
-         }
-       });
- 
-     } catch (error) {
-       //console.error('Bağlantı hatası:', error);
-       client.disconnect(true);
-     }
-   } */
-
-
-
-  async processStatusMP(data: any) {
-    const kullaniciRepo = this.dataSource.getRepository(MpKullanicilar);
-
-    const kullanici = await kullaniciRepo.findOne({
-      where: { id: data.userId }
-    });
-    if (!kullanici) return;
-    const guncelDurum = data.status === 'online' ? true : false;
-
-    if (kullanici.isActive !== guncelDurum) {
-      await kullaniciRepo.update(data.userId, { isActive: guncelDurum });
-      this.server.emit('userStatusMp', {
-        userId: data.userId,
-        status: guncelDurum ? 'online' : 'offline',
-        timestamp: new Date()
-      });
-    }
-  }
-
-
-
-  @SubscribeMessage('userStatusMp')
-  async handleUserStatusMp(client: Socket, data: any): Promise<void> {
-    const statusKey = `status_${data.userId}`;
-    if (!data.userId || !data.status) return;
-
-    // Eğer işlem devam ediyorsa bekle
-    if (AppGateway.processingMessagesMp.has(statusKey)) {
-      await AppGateway.processingMessagesMp.get(statusKey);
-      return; // Zaten işlendi
-    }
-
-    // Yeni promise oluştur ve map'e ekle
-    const processingPromise = this.processStatusMP(data);
-    AppGateway.processingMessagesMp.set(statusKey, processingPromise);
-    try {
-      await processingPromise;
-    } finally {
-      AppGateway.processingMessagesMp.delete(statusKey);
-    }
-  }
-
-  @SubscribeMessage('BildirimOkunduMp')
-  async handleNotificationReadMp(client: Socket, data: any): Promise<void> {
-    try {
-      if (!data.BildirimID || !data.KullaniciID) {
-        return;
-      }
-
-      const notificationKey = `${data.BildirimID}_${data.KullaniciID}`;
-
-      // Kilit kontrolü
-      if (AppGateway.processingMessages3Mp.get(notificationKey)) {
-        return;
-      }
-
-      // İşleme başladığını işaretle
-      AppGateway.processingMessages3Mp.set(notificationKey, true);
-
-      try {
-        const bildirimRepo = this.dataSource.getRepository(KullaniciBildirimleri);
-
-        // Önce bildirimin varlığını ve durumunu kontrol et
-        const bildirim = await bildirimRepo.findOne({
-          where: {
-            KullaniciBildirimID: data.BildirimID,
-            KullaniciID: data.KullaniciID,
-            OkunduMu: false // Sadece okunmamış bildirimleri işle
-          }
-        });
-
-        if (!bildirim) {
-          return;
-        }
-
-        // Bildirimi güncelle
-        bildirim.OkunduMu = true;
-        bildirim.Durum = 'Okundu';
-        bildirim.OkunmaTarihi = new Date();
-        await bildirimRepo.save(bildirim);
-
-        // Bildirim gönder
-        const room = `userMp_${data.KullaniciID}`;
-        this.server.to(room).emit('BildirimOkunduMp', {
-          KullaniciID: data.KullaniciID,
-          BildirimID: data.BildirimID,
-          OkunmaTarihi: bildirim.OkunmaTarihi,
-          success: true,
-        });
-
-      } finally {
-        // İşlem bittiğinde kilidi kaldır
-        AppGateway.processingMessages3Mp.delete(notificationKey);
-      }
-    } catch (error) {
-      console.error('Bildirim okuma hatası:', error);
-      // Hata durumunda da kilidi kaldır
-      AppGateway.processingMessages3Mp.delete(`${data.BildirimID}_${data.KullaniciID}`);
-    }
-  }
-
-  sendNotificationToUserMp(userId: number, notification: any): void {
-    const room = `userMp_${userId}`;
-    this.server.to(room).emit('newNotificationMp', notification);
-  }
-
 }

@@ -10,6 +10,10 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'Ad Soyad zorunludur' })
   fullName: string;
 
+  @IsString({ message: 'Firma Adı string olmalıdır' })
+  @IsNotEmpty({ message: 'Firma Adı zorunludur' })
+  firmaAdi: string;
+
   @IsEmail({}, { message: 'E-posta adresi hatalı' })
   @IsNotEmpty({ message: 'E-posta adresi zorunludur' })
   email: string;

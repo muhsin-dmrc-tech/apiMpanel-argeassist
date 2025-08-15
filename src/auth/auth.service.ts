@@ -21,9 +21,6 @@ import { MailService } from 'src/mail/mail.service';
 import { SmsService } from 'src/sms/sms.service';
 import * as fs from 'fs';
 import * as path from 'path';
-import { KullaniciDavetleri } from 'src/kullanici-davetleri/entities/kullanici-davetleri.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import { KullaniciCihazlari } from 'src/kullanicilar/entities/kullanici-cihazlari.entity';
 //import { LogsService } from 'src/logs-tables/logs.service';
 
@@ -348,7 +345,8 @@ export class AuthService {
       email,
       password,
       confirmPassword,
-      fullName
+      fullName,
+      firmaAdi
     } = registerDto;
     // Email kontrolü
     const existingUserByEmail = await this.dataSource
@@ -381,6 +379,7 @@ export class AuthService {
         const user = await manager.getRepository(Kullanicilar).save({
           Email: email,
           AdSoyad: fullName,
+          FirmaAdi: firmaAdi,
           KullaniciTipi: 1,
           Sifre: hashedPassword,
           isActive: false,
@@ -436,7 +435,7 @@ export class AuthService {
         throw new BadRequestException('Kullanıcı bulunamadı');
       }
 
-      const queryBuilder = this.dataSource
+     /*  const queryBuilder = this.dataSource
         .getRepository(KullaniciDavetleri)
         .createQueryBuilder('davet')
         .where('davet.Durum IS NULL')
@@ -478,7 +477,7 @@ export class AuthService {
 
       queryBuilder.select(select);
 
-      const davetler = await queryBuilder.getMany();
+      const davetler = await queryBuilder.getMany(); */
 
 
       /* const teknodavetler = await this.dataSource
@@ -503,9 +502,9 @@ export class AuthService {
       let { Sifre, ...result } = user;
 
       // Tipi genişletmek için TypeScript'e bilgi veriyoruz
-      if (davetler.length > 0) {
+     /*  if (davetler.length > 0) {
         return { ...result, davetler } as typeof result & { davetler: KullaniciDavetleri[] };
-      }
+      } */
       // Tipi genişletmek için TypeScript'e bilgi veriyoruz
       /*  if (teknodavetler.length > 0) {
          return { ...result, teknodavetler } as typeof result & { teknodavetler: TeknoKullaniciDavetleri[] };
@@ -884,7 +883,7 @@ export class AuthService {
 
 
 
-  async updateUserInfo(fullName: string, phoneNumber: string, userId: number) {
+  async updateUserInfo(fullName: string,firmaAdi: string, phoneNumber: string, userId: number) {
     try {
       const user = await this.dataSource.getRepository(Kullanicilar).findOne({
         where: { id: userId },
@@ -902,7 +901,7 @@ export class AuthService {
       }
 
       try {
-        await this.dataSource.getRepository(Kullanicilar).update(userId, { AdSoyad: fullName, Telefon: phoneNumber });
+        await this.dataSource.getRepository(Kullanicilar).update(userId, { AdSoyad: fullName, Telefon: phoneNumber,FirmaAdi:firmaAdi });
 
       } catch (error) {
         throw new Error(error)

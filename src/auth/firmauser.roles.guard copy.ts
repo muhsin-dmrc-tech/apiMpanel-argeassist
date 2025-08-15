@@ -1,9 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { FirmaAbonelikleri } from 'src/firma-abonelikleri/entities/firma-abonelikleri.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
 import { Personel } from 'src/personel/entities/personel.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -50,7 +47,7 @@ export class YetkiRolesGuard implements CanActivate {
     }
 
     // Kullanıcının izinlerini veritabanından al
-    const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
+   /*  const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
       .where('personel.IliskiID = :id', { id: iliskiId })
       .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 })
       .andWhere('personel.KullaniciID = :KullaniciID', { KullaniciID: user.userId })
@@ -74,7 +71,7 @@ export class YetkiRolesGuard implements CanActivate {
       if (yetki.Teknokent.IsDeleted === true) {
       throw new ForbiddenException('Teknokent silinmiş');
     }
-    }
+    } */
 
     // Abonelik kontrolü
     /*  const abonelik = await this.dataSource.getRepository(FirmaAbonelikleri).findOne({
@@ -113,7 +110,7 @@ export class YetkiRolesGuard implements CanActivate {
      } */
 
 
-    if (yetki.Rol !== 'owner') {
+   /*  if (yetki.Rol !== 'owner') {
       if (!yetki.Grup) {
         throw new ForbiddenException('Kullanıcı bir gruba atanmadığı için yetkisi yok');
       }
@@ -131,7 +128,7 @@ export class YetkiRolesGuard implements CanActivate {
       if (!hasPermission) {
         throw new ForbiddenException('Bu eylemi gerçekleştirme izniniz yok');
       }
-    }
+    } */
 
 
 

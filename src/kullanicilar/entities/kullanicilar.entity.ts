@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { KullaniciCihazlari } from './kullanici-cihazlari.entity';
+import { Projeler } from 'src/projeler/entities/projeler.entity';
 
 @Entity('Kullanicilar')
 export class Kullanicilar {
@@ -18,6 +19,9 @@ export class Kullanicilar {
 
   @Column({ nullable: true, type: 'varchar', length: 255 })
   AdSoyad: string;
+
+  @Column({ nullable: true, type: 'varchar', length: 255 })
+  FirmaAdi: string;
 
   @Column({ nullable: false, type: 'int', default: 1 })
   KullaniciTipi: number;
@@ -31,7 +35,7 @@ export class Kullanicilar {
   @Column({ nullable: true, type: 'varchar', length: 255 })
   ProfilResmi: string;
 
-  @Column({ nullable: true, type: 'varchar', length: 255, select: false})
+  @Column({ nullable: true, type: 'varchar', length: 255, select: false })
   Sifre: string;
 
   @CreateDateColumn({ nullable: true, type: 'datetime' })
@@ -40,25 +44,25 @@ export class Kullanicilar {
   @UpdateDateColumn({ nullable: true, type: 'datetime' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'datetime', nullable: true,default:null })
+  @DeleteDateColumn({ type: 'datetime', nullable: true, default: null })
   deletedAt: Date;
 
-  @Column({ type: "bit", default:0 })
+  @Column({ type: "bit", default: 0 })
   isVerified: boolean;
 
-  @Column({ nullable: true, type: 'datetime',default:null })
+  @Column({ nullable: true, type: 'datetime', default: null })
   verifiedAt: Date;
 
-  @Column({ type: "bit", default:0, nullable: false }) 
+  @Column({ type: "bit", default: 0, nullable: false })
   isActive: boolean;
 
-  @Column({ type: "bit", default:0 })
+  @Column({ type: "bit", default: 0 })
   isTwoFactorEnabled?: boolean;
 
   @Column({ nullable: true, type: 'varchar', length: 500 })
   twoFactorSecret?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable:false, default: "user"}) 
+  @Column({ type: 'varchar', length: 100, nullable: false, default: "user" })
   role: string;
 
   @OneToMany(() => LoginKayitlari, loginKayitlari => loginKayitlari.Kullanici)
@@ -66,4 +70,7 @@ export class Kullanicilar {
 
   @OneToMany(() => KullaniciCihazlari, cihazlar => cihazlar.Kullanici)
   Cihazlar: KullaniciCihazlari[];
+
+  @OneToMany(() => Projeler, projeler => projeler.Kullanici)
+  Projeler: Projeler[];
 }

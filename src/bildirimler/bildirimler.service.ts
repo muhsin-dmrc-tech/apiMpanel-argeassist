@@ -18,8 +18,6 @@ export class BildirimlerService {
         private readonly bildirimlerRepository: Repository<Bildirimler>,
         private readonly dataSource: DataSource,
         private readonly appGateway: AppGateway,
-        @Inject('FIREBASE_ADMIN')
-        private readonly firebaseApp: admin.app.App
     ) { }
 
 
@@ -67,14 +65,14 @@ export class BildirimlerService {
             },
         };
 
-        try {
+       /*  try {
             const response = await this.firebaseApp.messaging().send(message);
             console.log('✅ FCM gönderim yanıtı:', response);
             return response;
         } catch (error) {
             console.error('❌ FCM gönderim hatası:', error);
             throw error;
-        }
+        } */
     }
 
 

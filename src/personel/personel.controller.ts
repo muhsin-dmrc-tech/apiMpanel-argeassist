@@ -17,7 +17,7 @@ export class PersonelController {
     ) { }
 
 
-    @UseGuards(JwtAuthGuard)
+   /*  @UseGuards(JwtAuthGuard)
     @Get('full-kullanici-firmalari')
     async fullKullaniciFirmalari(
         @Request() req,
@@ -26,9 +26,9 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.fullKullaniciFirmalari(req.user.userId);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-seeing')
     @Get('personel-firma-disinda-kayitlari/:iliskiId/:personelId')
     async firmaDisindaKayitlar(
@@ -50,9 +50,9 @@ export class PersonelController {
         }
 
         return this.personelService.firmaDisindaKayitlar(IliskiID, PersonelID, query);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-seeing')
     @Get('get-personel/:iliskiId/:id')
     async getPersonel(
@@ -74,9 +74,9 @@ export class PersonelController {
         }
 
         return this.personelService.getPersonel(IliskiID, PersonelID,query);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-seeing')
     @Get('personeller-izinbilgisi/:iliskiId/:donemId')
     async personellerIzinBilgisi(
@@ -97,9 +97,9 @@ export class PersonelController {
         }
 
         return this.personelService.personellerIzinBilgisi(IliskiID, DonemID);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard)
+    /* @UseGuards(JwtAuthGuard)
     @Get('/get-personeller-query/:iliskiId')
     async getPersonellerQuery(
         @Request() req,
@@ -110,10 +110,10 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.getPersonellerQuery(req.user.userId, query, IliskiID);
-    }
+    } */
 
 
-    @UseGuards(JwtAuthGuard)
+    /* @UseGuards(JwtAuthGuard)
     @Get('/get-personeller/:iliskiId')
     async getPersoneller(
         @Request() req,
@@ -123,10 +123,10 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.getPersoneller(IliskiID);
-    }
+    } */
 
 
-    @UseGuards(JwtAuthGuard)
+   /*  @UseGuards(JwtAuthGuard)
     @Get('get-iliski-kullanicilari')
     async getIliskiKullanicilari(
         @Request() req,
@@ -135,9 +135,9 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.getIliskiKullanicilari(req.user.userId);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard)
+    /* @UseGuards(JwtAuthGuard)
     @Get('iliski-kullanicilari-query/:iliskiId')
     async iliskiKullanicilariQuery(
         @Request() req,
@@ -162,11 +162,11 @@ export class PersonelController {
             throw new ForbiddenException('Bu eylemi gerçekleştirme izniniz yok')
         }
         return this.personelService.iliskiKullanicilariQuery(req.user.userId, query, iliskiId);
-    }
+    } */
 
 
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+   /*  @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-delete')
     @Post('delete')
     async delete(@Request() req, @Body() data: any,) {
@@ -174,9 +174,9 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.delete(req.user.userId, data);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-delete')
     @Post('reload')
     async reload(@Request() req, @Body() data: any,) {
@@ -184,10 +184,10 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.reload(req.user.userId, data);
-    }
+    } */
 
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-edit')
     @Post('create')
     async create(@Body() data: CreatePersonelDto, @Request() req) {
@@ -195,9 +195,9 @@ export class PersonelController {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.create(req.user.userId, data);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    /* @UseGuards(JwtAuthGuard, YetkiRolesGuard)
     @YetkiUserRoles('personel-edit')
     @Post('update')
     async update(@Body() data: UpdatePersonelDto, @Request() req) {
@@ -206,25 +206,25 @@ export class PersonelController {
         }
         return this.personelService.update(req.user.userId, data);
     }
+ */
 
 
-
-    @UseGuards(JwtAuthGuard)
+    /* @UseGuards(JwtAuthGuard)
     @Post('iliski-update')
     async iliskiUpdate(@Body() data: UpdateIliskiDto, @Request() req) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.iliskiUpdate(req.user.userId, data);
-    }
+    } */
 
-    @UseGuards(JwtAuthGuard)
+  /*   @UseGuards(JwtAuthGuard)
     @Post('iliski-delete')
     async iliskiDelete(@Request() req, @Body() data: any,) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
         return this.personelService.iliskiDelete(req.user.userId, data);
-    }
+    } */
 
 }

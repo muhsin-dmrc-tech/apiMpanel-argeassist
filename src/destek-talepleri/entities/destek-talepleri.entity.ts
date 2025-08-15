@@ -1,7 +1,6 @@
 import { DestekTipi } from 'src/destek-tipleri/entities/destek-tipleri.entity';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
 import { ProjeBasvuru } from 'src/proje-basvuru/entities/proje.basvuru.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import {
     Entity,
     Column,
@@ -55,10 +54,10 @@ export class DestekTalepleri {
     @JoinColumn({ name: 'KullaniciID' })
     Kullanici: Kullanicilar;
 
-    @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID, { nullable: true })
+   /*  @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID, { nullable: true })
     @JoinColumn({ name: 'TeknokentID' })
     Teknokent: Teknokentler;
-
+ */
     @ManyToOne(() => DestekTipi, destekTipi => destekTipi.DestekTipiID)
     @JoinColumn({ name: 'DestekTipiID' })
     DestekTipi: DestekTipi;

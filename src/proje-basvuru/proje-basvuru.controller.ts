@@ -102,7 +102,7 @@ export class ProjeBasvuruController {
         return this.basvuruService.getBasvurularAdmin(req.user.userId, query);
     }
 
-    @UseGuards(JwtAuthGuard, RolesGuard)
+ /*    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(3)
     @Get('proje-basvurulari-teknoadmin')
     async getBasvurularTeknoAdmin(
@@ -113,7 +113,7 @@ export class ProjeBasvuruController {
             throw new BadRequestException('Kullanıcı ID gereklidir');
         }
         return this.basvuruService.getBasvurularTeknoAdmin(req.user.userId, query);
-    }
+    } */
 
     @UseGuards(JwtAuthGuard)
     @Post('create')

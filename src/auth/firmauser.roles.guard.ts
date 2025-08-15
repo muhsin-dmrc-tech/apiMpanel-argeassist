@@ -1,9 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { FirmaAbonelikleri } from 'src/firma-abonelikleri/entities/firma-abonelikleri.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
-import { Personel } from 'src/personel/entities/personel.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
+//import { FirmaAbonelikleri } from 'src/firma-abonelikleri/entities/firma-abonelikleri.entity';
+//import { Firma } from 'src/firmalar/entities/firma.entity';
+//import { Personel } from 'src/personel/entities/personel.entity';
+//import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -35,7 +35,7 @@ export class YetkiRolesGuard implements CanActivate {
     let iliskiId = null;
 
 
-    if (user.userTypeEnum === 1) {
+    /* if (user.userTypeEnum === 1) {
       iliskiId = request.params.firmaId || request.body.FirmaID || request.query.FirmaID ||
         request.params.iliskiId || request.body.IliskiID || request.query.IliskiID || null;
       if (!iliskiId) {
@@ -47,11 +47,11 @@ export class YetkiRolesGuard implements CanActivate {
       if (!iliskiId) {
         throw new ForbiddenException('Teknokent ID zorunludur');
       }
-    }
+    } */
 
 
     // Kullanıcının izinlerini veritabanından al
-    const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
+    /* const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
       .where('personel.IliskiID = :id', { id: iliskiId })
       .andWhere('personel.Tip = :Tip', { Tip: user.userTypeEnum === 3 ? 3 : 1 })
       .andWhere('personel.KullaniciID = :KullaniciID', { KullaniciID: user.userId })
@@ -76,9 +76,9 @@ export class YetkiRolesGuard implements CanActivate {
       if (yetki.Teknokent?.IsDeleted === true) {
       throw new ForbiddenException('Teknokent silinmiş');
     }
-    }
+    } */
     
-    if (yetki.Rol !== 'owner') {
+  /*   if (yetki.Rol !== 'owner') {
       if (!yetki.Grup) {
         throw new ForbiddenException('Kullanıcı bir gruba atanmadığı için yetkisi yok');
       }
@@ -96,7 +96,7 @@ export class YetkiRolesGuard implements CanActivate {
       if (!hasPermission) {
         throw new ForbiddenException('Bu eylemi gerçekleştirme izniniz yok');
       }
-    }
+    } */
 
 
 

@@ -15,29 +15,23 @@ export class ProjelerController {
     ) { }
 
     @UseGuards(JwtAuthGuard)
-    @Get('get-proje/:teknokentId/:id')
+    @Get('get-proje/:id')
     async getProje(
         @Request() req,
-        @Param('teknokentId') TeknokentID: number,
         @Param('id') ProjeID: number
     ) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı ID gereklidir');
         }
 
-        if (!TeknokentID) {
-            throw new BadRequestException('Teknokent ID gereklidir');
-        }
-
         if (!ProjeID) {
             throw new BadRequestException('Proje ID gereklidir');
         }
 
-        return this.projeService.getProje(TeknokentID, ProjeID);
+        return this.projeService.getProje(ProjeID);
     }
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
-    @YetkiUserRoles('proje-seeing')
+    @UseGuards(JwtAuthGuard)
     @Get('get-active-projeler')
     async getActiveProjeler(
         @Request() req
@@ -48,52 +42,42 @@ export class ProjelerController {
         return this.projeService.getActiveProjeler();
     }
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
-    @YetkiUserRoles('proje-seeing')
-    @Get('/get-firma-projeler/:firmaId')
+    @UseGuards(JwtAuthGuard)
+    @Get('/get-firma-projeler')
     async getFirmaProjeler(
         @Request() req,
-        @Param('firmaId') FirmaID: number,
     ) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı kimliği gereklidir');
         }
-        if (!FirmaID) {
-            throw new BadRequestException('FirmaID gereklidir');
-        }
-        return this.projeService.getFirmaProjeler(FirmaID);
+        return this.projeService.getFirmaProjeler(req.user.userId);
     }
 
 
 
 
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
-    @YetkiUserRoles('proje-seeing')
-    @Get('get-projeler/:firmaId')
+    @UseGuards(JwtAuthGuard)
+    @Get('get-projeler')
     async getProjeler(
         @Request() req,
         @Query() query: any,
-        @Param('firmaId') firmaId: number
     ) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
-        return this.projeService.getProjeler(req.user.userId, query, firmaId);
+        return this.projeService.getProjeler(req.user.userId, query);
     }
 
     //Tekno Adminler için
     @UseGuards(JwtAuthGuard)
-    @Get('get-projeler-teknoadmin')
-    async getProjelerTeknoAdmin(
+    @Get('get-projeler-admin')
+    async getProjelerAdmin(
         @Request() req,
         @Query() query: any,
     ) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
-        const teknokullanici = await this.dataSource.getRepository(Personel).findOne({
-            where: { KullaniciID: req.user.userId, Rol: 'owner', Tip: 3 },
-        });
         const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: req.user.userId } });
         if (!user) {
             throw new BadRequestException('Kullanıcı kimliği geçersiz');
@@ -101,8 +85,8 @@ export class ProjelerController {
         if (user.KullaniciTipi === 1) {
             throw new BadRequestException(`Yetkisiz kullanıcı`);
         }
-        if (teknokullanici || (user.KullaniciTipi === 2 && user.role === 'admin')) {
-            return this.projeService.getProjelerTeknoAdmin(req.user.userId, query, teknokullanici ? teknokullanici.IliskiID : null);
+        if (user.KullaniciTipi === 2) {
+            return this.projeService.getProjelerAdmin(req.user.userId, query);
         } else {
             throw new ForbiddenException('Kullanıcı yetkisi yok')
         }
@@ -110,23 +94,21 @@ export class ProjelerController {
     }
 
     //Tekno Adminler için
-    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
-    @YetkiUserRoles('proje-seeing')
-    @Get('get-tekno-aktif-projeler/:iliskiId')
-    async getAktifProjelerTeknoAdmin(
+    @UseGuards(JwtAuthGuard)
+    @Get('get-aktif-projeler')
+    async getAktifProjelerAdmin(
         @Request() req,
-        @Param('iliskiId') iliskiId: number,
     ) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
-        return this.projeService.getAktifProjelerTeknoAdmin(req.user.userId, iliskiId);
+        return this.projeService.getAktifProjelerAdmin(req.user.userId);
 
     }
 
     //Tekno Adminler için
     @UseGuards(JwtAuthGuard)
-    @Get('get-proje-item-teknoadmin/:id')
+    @Get('get-proje-item-admin/:id')
     async getProjeDetayTeknoAdmin(
         @Request() req,
         @Param('id') ProjeID: number
@@ -139,9 +121,6 @@ export class ProjelerController {
             throw new BadRequestException('Proje ID gereklidir');
         }
 
-        const teknokullanici = await this.dataSource.getRepository(Personel).findOne({
-            where: { KullaniciID: req.user.userId, Rol: 'owner', Tip: 3 },
-        });
         const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: req.user.userId } });
         if (!user) {
             throw new BadRequestException('Kullanıcı kimliği geçersiz');
@@ -149,8 +128,8 @@ export class ProjelerController {
         if (user.KullaniciTipi === 1) {
             throw new BadRequestException(`Yetkisiz kullanıcı`);
         }
-        if (teknokullanici || (user.KullaniciTipi === 2 && user.role === 'admin')) {
-            return this.projeService.getProjeDetayTeknoAdmin(ProjeID, teknokullanici ? teknokullanici.IliskiID : null);
+        if (user.KullaniciTipi === 2) {
+            return this.projeService.getProjeDetayAdmin(ProjeID);
         } else {
             throw new ForbiddenException('Kullanıcı yetkisi yok')
         }
@@ -180,7 +159,7 @@ export class ProjelerController {
 
     @UseGuards(JwtAuthGuard)
     @Post('create')
-    async create(@Body() data: { ProjeAdi: string, FirmaID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
+    async create(@Body() data: { ProjeAdi: string, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
@@ -189,7 +168,7 @@ export class ProjelerController {
 
     @UseGuards(JwtAuthGuard)
     @Post('update')
-    async update(@Body() data: { ProjeAdi: string, FirmaID: number, ProjeID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
+    async update(@Body() data: { ProjeAdi: string, ProjeID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
         if (!req.user.userId) {
             throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
@@ -207,9 +186,6 @@ export class ProjelerController {
             throw new BadRequestException('TeknokentID, Proje Uzman Kullanici ID ve Proje seçimi zorunludur');
         }
 
-        const teknokullanici = await this.dataSource.getRepository(Personel).findOne({
-            where: { KullaniciID: req.user.userId, Rol: 'owner', Tip: 3 },
-        });
         const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: req.user.userId } });
         if (!user) {
             throw new BadRequestException('Kullanıcı kimliği geçersiz');
@@ -217,7 +193,7 @@ export class ProjelerController {
         if (user.KullaniciTipi === 1) {
             throw new BadRequestException(`Yetkisiz kullanıcı`);
         }
-        if (teknokullanici || (user.KullaniciTipi === 2 && user.role === 'admin')) {
+        if (user.KullaniciTipi === 2) {
             return this.projeService.uzmanUpdate(req.user.userId, data);
         } else {
             throw new ForbiddenException('Kullanıcı yetkisi yok')
@@ -235,10 +211,6 @@ export class ProjelerController {
             throw new BadRequestException('TeknokentID, Proje Hakem Kullanici ID ve Proje seçimi zorunludur');
         }
 
-
-        const teknokullanici = await this.dataSource.getRepository(Personel).findOne({
-            where: { KullaniciID: req.user.userId, Rol: 'owner', Tip: 3 },
-        });
         const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: req.user.userId } });
         if (!user) {
             throw new BadRequestException('Kullanıcı kimliği geçersiz');
@@ -246,7 +218,7 @@ export class ProjelerController {
         if (user.KullaniciTipi === 1) {
             throw new BadRequestException(`Yetkisiz kullanıcı`);
         }
-        if (teknokullanici || (user.KullaniciTipi === 2 && user.role === 'admin')) {
+        if (user.KullaniciTipi === 2 ) {
             return this.projeService.hakemUpdate(req.user.userId, data);
         } else {
             throw new ForbiddenException('Kullanıcı yetkisi yok')

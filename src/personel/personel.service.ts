@@ -5,13 +5,8 @@ import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
 import { Personel } from './entities/personel.entity';
 import { CreatePersonelDto } from './dto/create.dto';
 import { UpdatePersonelDto } from './dto/update.dto';
-import { IzinSureleri } from 'src/izin-sureleri/entities/izin-sureleri.entity';
-import { DisaridaGecirilenSureler } from 'src/disarida-gecirilen-sureler/entities/disarida-gecirilen-sureler.entity';
 import { Donem } from 'src/donem/entities/donem.entity';
 import { UpdateIliskiDto } from './dto/iliskiupdate.dto';
-import { GrupYetkileri } from 'src/grup-yetkileri/entities/grup-yetkileri.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
 import { LoginKayitlari } from 'src/login-kayitlari/entities/login-kayitlari.entity';
 import { isNumber } from 'class-validator';
 
@@ -24,45 +19,45 @@ export class PersonelService {
     ) { }
 
 
-    async fullKullaniciFirmalari(userId: number) {
+    /*   async fullKullaniciFirmalari(userId: number) {
+  
+          if (!userId) {
+              throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
+          }
+  
+          const user = await this.dataSource.getRepository(Kullanicilar).findOne({
+              where: { id: userId },
+          });
+  
+          if (!user) {
+              throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
+          }
+  
+  
+          try {
+              const queryBuilder = this.dataSource.getRepository(Personel)
+                  .createQueryBuilder('kullaniciFirmalari')
+                  .where('kullaniciFirmalari.KullaniciID = :KullaniciID', { KullaniciID: userId })
+                  .andWhere('kullaniciFirmalari.Rol = :Rol', { Rol: 'owner' })
+                  .andWhere('kullaniciFirmalari.Tip = :Tip', { Tip: 1 })
+                  .leftJoinAndMapOne('kullaniciFirmalari.Firma', Firma, 'Firma', 'Firma.FirmaID = kullaniciFirmalari.IliskiID')
+                  .andWhere('Firma.IsDeleted != :IsDeleted', { IsDeleted: 1 })
+  
+  
+  
+  
+  
+              const kullaniciFirmalari = await queryBuilder.getMany();
+  
+  
+              return kullaniciFirmalari;
+          } catch (error) {
+              throw new BadRequestException(error.message || 'Kullanıcı firmaları getirme hatası');
+          }
+      } */
 
-        if (!userId) {
-            throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-        }
 
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-        }
-
-
-        try {
-            const queryBuilder = this.dataSource.getRepository(Personel)
-                .createQueryBuilder('kullaniciFirmalari')
-                .where('kullaniciFirmalari.KullaniciID = :KullaniciID', { KullaniciID: userId })
-                .andWhere('kullaniciFirmalari.Rol = :Rol', { Rol: 'owner' })
-                .andWhere('kullaniciFirmalari.Tip = :Tip', { Tip: 1 })
-                .leftJoinAndMapOne('kullaniciFirmalari.Firma', Firma, 'Firma', 'Firma.FirmaID = kullaniciFirmalari.IliskiID')
-                .andWhere('Firma.IsDeleted != :IsDeleted', { IsDeleted: 1 })
-
-
-
-
-
-            const kullaniciFirmalari = await queryBuilder.getMany();
-
-
-            return kullaniciFirmalari;
-        } catch (error) {
-            throw new BadRequestException(error.message || 'Kullanıcı firmaları getirme hatası');
-        }
-    }
-
-
-    async firmaDisindaKayitlar(IliskiID: number, PersonelID: number, query: any) {
+    /* async firmaDisindaKayitlar(IliskiID: number, PersonelID: number, query: any) {
         let IzinTalepID = parseInt(query.izintalepId) || null;
         let DonemID = parseInt(query.donemId) || null;
         let DisaridaGecirilenFormID = parseInt(query.disgorevformId) || null;
@@ -119,9 +114,9 @@ export class PersonelService {
         } catch (error) {
             throw error;
         }
-    }
+    } */
 
-    async getPersonel(IliskiID: number, PersonelID: number, query: any) {
+    /* async getPersonel(IliskiID: number, PersonelID: number, query: any) {
         if (!IliskiID || !PersonelID) {
             throw new BadRequestException('İliski ID ve Personel ID gereklidir');
         }
@@ -163,9 +158,9 @@ export class PersonelService {
         } catch (error) {
             throw error;
         }
-    }
+    } */
 
-    async personellerIzinBilgisi(IliskiID: number, DonemID: number) {
+    /* async personellerIzinBilgisi(IliskiID: number, DonemID: number) {
         if (!IliskiID || !DonemID) {
             throw new BadRequestException('Iliski ID ve Donem ID gereklidir');
         }
@@ -208,107 +203,107 @@ export class PersonelService {
                 'Personel izin bilgileri alınırken bir hata oluştu'
             );
         }
-    }
+    } */
 
 
-    async getPersoneller(IliskiID: number) {
-        if (!IliskiID) {
-            throw new BadRequestException('Iliski ID gereklidir');
-        }
-        try {
-            const personeller = await this.dataSource
-                .getRepository(Personel)
-                .find({ where: { IsDeleted: false, IliskiID: IliskiID } });
-
-            return personeller;
-        } catch (error) {
-            throw new BadRequestException('Veriler çekilirken bir hata oluştu');
-        }
-    }
-
-
-    async getPersonellerQuery(userId: number, query: any, IliskiID: number) {
-        const page = parseInt(query.page) || 1;
-        const limit = parseInt(query.items_per_page) || 10;
-        const sort = query.sort || 'PersonelID';
-        const order = query.order || 'DESC';
-        const filter = query.filter || {};
-
-        if (isNaN(page) || isNaN(limit)) {
-            throw new BadRequestException('Sayfa ve Sınır Numaralar olmalı');
-        }
-
-        if (!userId) {
-            throw new BadRequestException(`Kullanıcı ID gereklidir`);
-        }
-
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
-        }
-
-        const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
-            .where('personel.IliskiID = :id', { id: IliskiID })
-            .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 })
-            .leftJoinAndSelect('personel.Kullanici', 'Kullanici')
-            .leftJoinAndSelect('personel.Grup', 'Grup');
+    /*  async getPersoneller(IliskiID: number) {
+         if (!IliskiID) {
+             throw new BadRequestException('Iliski ID gereklidir');
+         }
+         try {
+             const personeller = await this.dataSource
+                 .getRepository(Personel)
+                 .find({ where: { IsDeleted: false, IliskiID: IliskiID } });
+ 
+             return personeller;
+         } catch (error) {
+             throw new BadRequestException('Veriler çekilirken bir hata oluştu');
+         }
+     } */
 
 
-        if (user.KullaniciTipi === 1) {
-            queryBuilder.leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
-        } else if (user.KullaniciTipi === 3) {
-            queryBuilder.leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
-        }
+    /*  async getPersonellerQuery(userId: number, query: any, IliskiID: number) {
+         const page = parseInt(query.page) || 1;
+         const limit = parseInt(query.items_per_page) || 10;
+         const sort = query.sort || 'PersonelID';
+         const order = query.order || 'DESC';
+         const filter = query.filter || {};
+ 
+         if (isNaN(page) || isNaN(limit)) {
+             throw new BadRequestException('Sayfa ve Sınır Numaralar olmalı');
+         }
+ 
+         if (!userId) {
+             throw new BadRequestException(`Kullanıcı ID gereklidir`);
+         }
+ 
+         const user = await this.dataSource.getRepository(Kullanicilar).findOne({
+             where: { id: userId },
+         });
+ 
+         if (!user) {
+             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
+         }
+ 
+         const queryBuilder = this.dataSource.getRepository(Personel).createQueryBuilder('personel')
+             .where('personel.IliskiID = :id', { id: IliskiID })
+             .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 })
+             .leftJoinAndSelect('personel.Kullanici', 'Kullanici')
+             .leftJoinAndSelect('personel.Grup', 'Grup');
+ 
+ 
+         if (user.KullaniciTipi === 1) {
+             queryBuilder.leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
+         } else if (user.KullaniciTipi === 3) {
+             queryBuilder.leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
+         }
+ 
+         if (query['search']) {
+ 
+             const searchTerm = `%${query['search']}%`;
+             queryBuilder.andWhere(new Brackets(qb => {
+                 qb.where('personel.AdSoyad LIKE :searchTerm')
+                     .orWhere('Kullanici.Email LIKE :searchTerm');
+             }), { searchTerm });
+         }
+ 
+         // Belirli alanlara göre filtreleme
+         Object.keys(filter).forEach((key) => {
+             if (key !== 'query') {
+                 const validFilterFields = {
+                     AdSoyad: 'personel.AdSoyad',
+                     // başka filtre alanları eklenebilir
+                 };
+ 
+                 if (validFilterFields[key]) {
+                     queryBuilder.andWhere(`${validFilterFields[key]} LIKE :${key}`, { [key]: `%${filter[key]}%` });
+                 }
+             }
+         });
+ 
+ 
+         const allowedSortFields = ['AdSoyad', 'PersonelID', 'TCNo',];
+         if (!allowedSortFields.includes(sort)) {
+             throw new BadRequestException(`Geçersiz sıralama değeri: ${sort}`);
+         }
+         // Sıralama işlemi
+         if (sort) {
+             queryBuilder.orderBy(`personel.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+         }
+ 
+         queryBuilder.skip((page - 1) * limit).take(limit);
+ 
+         const [personel, total] = await queryBuilder.getManyAndCount();
+         return {
+             data: personel,
+             total,
+             page,
+             lastPage: Math.ceil(total / limit),
+         };
+     } */
 
-        if (query['search']) {
 
-            const searchTerm = `%${query['search']}%`;
-            queryBuilder.andWhere(new Brackets(qb => {
-                qb.where('personel.AdSoyad LIKE :searchTerm')
-                    .orWhere('Kullanici.Email LIKE :searchTerm');
-            }), { searchTerm });
-        }
-
-        // Belirli alanlara göre filtreleme
-        Object.keys(filter).forEach((key) => {
-            if (key !== 'query') {
-                const validFilterFields = {
-                    AdSoyad: 'personel.AdSoyad',
-                    // başka filtre alanları eklenebilir
-                };
-
-                if (validFilterFields[key]) {
-                    queryBuilder.andWhere(`${validFilterFields[key]} LIKE :${key}`, { [key]: `%${filter[key]}%` });
-                }
-            }
-        });
-
-
-        const allowedSortFields = ['AdSoyad', 'PersonelID', 'TCNo',];
-        if (!allowedSortFields.includes(sort)) {
-            throw new BadRequestException(`Geçersiz sıralama değeri: ${sort}`);
-        }
-        // Sıralama işlemi
-        if (sort) {
-            queryBuilder.orderBy(`personel.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
-        }
-
-        queryBuilder.skip((page - 1) * limit).take(limit);
-
-        const [personel, total] = await queryBuilder.getManyAndCount();
-        return {
-            data: personel,
-            total,
-            page,
-            lastPage: Math.ceil(total / limit),
-        };
-    }
-
-
-    async create(userId: number, data: CreatePersonelDto) {
+    /* async create(userId: number, data: CreatePersonelDto) {
         if (!userId) {
             throw new BadRequestException(`Kullanıcı ID gereklidir`);
         }
@@ -366,76 +361,76 @@ export class PersonelService {
                 error.message || 'personel oluşturma hatası',
             );
         }
-    }
+    } */
 
-    async update(userId: number, data: UpdatePersonelDto) {
+    /*  async update(userId: number, data: UpdatePersonelDto) {
+ 
+ 
+         if (!userId) {
+             throw new BadRequestException(`Kullanıcı ID gereklidir`);
+         }
+ 
+         const user = await this.dataSource.getRepository(Kullanicilar).findOne({
+             where: { id: userId },
+         });
+ 
+         if (!user) {
+             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
+         }
+ 
+         let netMaas = null;
+         if ((data.NetMaas.length > 0 && data.NetMaas !== '0') || user.KullaniciTipi === 1) {
+             netMaas = parseFloat(data.NetMaas);
+ 
+             if (isNaN(netMaas) || netMaas < 1) {
+                 throw new BadRequestException("Geçerli bir net maaş tutarı girin (0'dan büyük bir sayı).");
+             }
+         }
+ 
+         function formatTime(timeString: string): string {
+             const [hours, minutes] = timeString.split(':');
+             return `${hours}:${minutes}:00`; // Saniyeyi sıfır olarak ekleyelim
+         }
+ 
+         try {
+ 
+             const personel = await this.personelRepository.findOne({ where: { PersonelID: data.PersonelID } });
+ 
+             if (!personel) {
+                 throw new BadRequestException(`personel bulunamadı`);
+             }
+             personel.AdSoyad = data.AdSoyad;
+             personel.TCNo = String(data.TCNo).trim()
+             personel.IliskiID = data.IliskiID;
+             personel.Tip = user.KullaniciTipi === 3 ? 3 : 1;
+             personel.KullaniciID = data.KullaniciID;
+             personel.BilisimPersoneli = data.BilisimPersoneli;
+             personel.MesaiBaslangic = data.MesaiBaslangic ? formatTime(data.MesaiBaslangic) : null;
+             personel.MesaiBitis = data.MesaiBitis ? formatTime(data.MesaiBitis) : null;
+             personel.IseGirisTarihi = data.IseGirisTarihi ? new Date(data.IseGirisTarihi) : null;
+             personel.IstenCikisTarihi = data.IstenCikisTarihi ? new Date(data.IstenCikisTarihi) : null;
+             personel.NetMaas = netMaas;
+ 
+             await this.personelRepository.save(personel);
+             const queryBuilder = this.personelRepository.createQueryBuilder('personel')
+                 .where('personel.PersonelID = :PersonelID', { PersonelID: personel.PersonelID })
+                 .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 });
+             if (user.KullaniciTipi === 1) {
+                 queryBuilder.leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
+             } else if (user.KullaniciTipi === 3) {
+                 queryBuilder.leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
+             }
+ 
+             return await queryBuilder.getOne();
+         } catch (error) {
+             console.log(error)
+             throw new BadRequestException(
+                 error.message || 'personel düzenleme hatası',
+             );
+         }
+     } */
 
-
-        if (!userId) {
-            throw new BadRequestException(`Kullanıcı ID gereklidir`);
-        }
-
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
-        }
-
-        let netMaas = null;
-        if ((data.NetMaas.length > 0 && data.NetMaas !== '0') || user.KullaniciTipi === 1) {
-            netMaas = parseFloat(data.NetMaas);
-
-            if (isNaN(netMaas) || netMaas < 1) {
-                throw new BadRequestException("Geçerli bir net maaş tutarı girin (0'dan büyük bir sayı).");
-            }
-        }
-
-        function formatTime(timeString: string): string {
-            const [hours, minutes] = timeString.split(':');
-            return `${hours}:${minutes}:00`; // Saniyeyi sıfır olarak ekleyelim
-        }
-
-        try {
-
-            const personel = await this.personelRepository.findOne({ where: { PersonelID: data.PersonelID } });
-
-            if (!personel) {
-                throw new BadRequestException(`personel bulunamadı`);
-            }
-            personel.AdSoyad = data.AdSoyad;
-            personel.TCNo = String(data.TCNo).trim()
-            personel.IliskiID = data.IliskiID;
-            personel.Tip = user.KullaniciTipi === 3 ? 3 : 1;
-            personel.KullaniciID = data.KullaniciID;
-            personel.BilisimPersoneli = data.BilisimPersoneli;
-            personel.MesaiBaslangic = data.MesaiBaslangic ? formatTime(data.MesaiBaslangic) : null;
-            personel.MesaiBitis = data.MesaiBitis ? formatTime(data.MesaiBitis) : null;
-            personel.IseGirisTarihi = data.IseGirisTarihi ? new Date(data.IseGirisTarihi) : null;
-            personel.IstenCikisTarihi = data.IstenCikisTarihi ? new Date(data.IstenCikisTarihi) : null;
-            personel.NetMaas = netMaas;
-
-            await this.personelRepository.save(personel);
-            const queryBuilder = this.personelRepository.createQueryBuilder('personel')
-                .where('personel.PersonelID = :PersonelID', { PersonelID: personel.PersonelID })
-                .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 });
-            if (user.KullaniciTipi === 1) {
-                queryBuilder.leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
-            } else if (user.KullaniciTipi === 3) {
-                queryBuilder.leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
-            }
-
-            return await queryBuilder.getOne();
-        } catch (error) {
-            console.log(error)
-            throw new BadRequestException(
-                error.message || 'personel düzenleme hatası',
-            );
-        }
-    }
-
-    async delete(userId: number, data: any) {
+    /* async delete(userId: number, data: any) {
 
         if (!data.itemId) {
             throw new BadRequestException('itemId gereklidir');
@@ -488,299 +483,178 @@ export class PersonelService {
         }
 
 
-    }
+    } */
 
-    async reload(userId: number, data: any) {
-        if (!data.itemId) {
-            throw new BadRequestException('itemId gereklidir');
-        }
-        if (isNaN(data.itemId)) {
-            throw new BadRequestException('itemId numara türünde olmalıdır');
-        }
+    /*  async reload(userId: number, data: any) {
+         if (!data.itemId) {
+             throw new BadRequestException('itemId gereklidir');
+         }
+         if (isNaN(data.itemId)) {
+             throw new BadRequestException('itemId numara türünde olmalıdır');
+         }
+ 
+         if (!userId) {
+             throw new BadRequestException(`Kullanıcı ID gereklidir`);
+         }
+ 
+         const user = await this.dataSource.getRepository(Kullanicilar).findOne({
+             where: { id: userId },
+         });
+ 
+         if (!user) {
+             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
+         }
+ 
+ 
+         try {
+             // Silinmiş personel'i bul
+             const personel = await this.personelRepository
+                 .createQueryBuilder('personel')
+                 .where('personel.PersonelID = :id', { id: data.itemId })
+                 .getOne();
+ 
+             if (personel) {
+                 // Template'i geri yükle
+                 personel.IsDeleted = false;
+ 
+                 await this.personelRepository.save(personel);
+                 const queryBuilder = this.personelRepository.createQueryBuilder('personel')
+                     .where('personel.PersonelID = :PersonelID', { PersonelID: data.itemId })
+                     .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 });
+                 if (user.KullaniciTipi === 1) {
+                     queryBuilder
+                         .leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
+                 } else if (user.KullaniciTipi === 3) {
+                     queryBuilder
+                         .leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
+                 }
+                 return await queryBuilder.getOne();
+             } else {
+                 return {
+                     status: 404,
+                     message: 'personel bulunamadı'
+                 };
+             }
+         } catch (error) {
+             throw new BadRequestException(
+                 error.message || 'personel geri getirme hatası'
+             );
+         }
+     } */
 
-        if (!userId) {
-            throw new BadRequestException(`Kullanıcı ID gereklidir`);
-        }
-
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
-        }
 
 
-        try {
-            // Silinmiş personel'i bul
-            const personel = await this.personelRepository
-                .createQueryBuilder('personel')
-                .where('personel.PersonelID = :id', { id: data.itemId })
-                .getOne();
 
-            if (personel) {
-                // Template'i geri yükle
-                personel.IsDeleted = false;
 
-                await this.personelRepository.save(personel);
+
+    /* 
+        async iliskiUpdate(userId: number, data: UpdateIliskiDto) {
+            if (!userId) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
+            if (!data.KullaniciID || !data.IliskiID || !data.GrupID || !data.PersonelID) {
+                throw new BadRequestException('Geçersiz kullanıcı, grup veya ilişki bilgisi');
+            }
+            const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: userId } });
+            if (!user) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
+    
+            const userRole = await this.dataSource.getRepository(Personel).findOne({ where: { KullaniciID: userId, IliskiID: data.IliskiID, Tip: user.KullaniciTipi === 3 ? 3 : 1 } });
+            if (!userRole || userRole.Rol !== 'owner') throw new BadRequestException(`Bu işlem için yetkiniz yok`);
+    
+            const idsorgu = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: data.KullaniciID } });
+            if (!idsorgu) throw new BadRequestException(`Kullanıcı bulunamadı`);
+    
+            const userIliski = await this.dataSource.getRepository(Personel).findOne({
+                where: { IliskiID: data.IliskiID, KullaniciID: data.KullaniciID, Tip: user.KullaniciTipi === 3 ? 3 : 1 }
+            });
+            if (!userIliski) throw new BadRequestException(`Bu ilişkiye ait kullanıcı bulunamadı`);
+    
+            if (!userIliski || userIliski.Rol === 'owner') throw new BadRequestException(`Owner yetkisi olan kullanıcılar üzerinde güncelleme işlemi yapılamaz`);
+    
+            const queryRunner = this.dataSource.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+    
+            try {
+                // Kullanıcı rolünü güncelle
+                await queryRunner.manager.getRepository(Personel).update({ PersonelID: userIliski.PersonelID }, { GrupID: data.GrupID });
+    
+                await queryRunner.commitTransaction();
+    
                 const queryBuilder = this.personelRepository.createQueryBuilder('personel')
-                    .where('personel.PersonelID = :PersonelID', { PersonelID: data.itemId })
-                    .andWhere('personel.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 });
+                    .leftJoinAndSelect('personel.Kullanici', 'Kullanici')
+                    .leftJoinAndSelect('personel.Grup', 'Grup')
+                    .where('personel.PersonelID = :id', { id: userIliski.PersonelID })
                 if (user.KullaniciTipi === 1) {
                     queryBuilder
-                        .leftJoinAndMapOne('personel.Firma', Firma, 'Firma', 'Firma.FirmaID = personel.IliskiID');
+                        .leftJoinAndSelect('Firma', 'Firma', 'Firma.FirmaID = personel.IliskiID');
                 } else if (user.KullaniciTipi === 3) {
                     queryBuilder
-                        .leftJoinAndMapOne('personel.Teknokent', Teknokentler, 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
+                        .leftJoinAndSelect('Teknokentler', 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
                 }
                 return await queryBuilder.getOne();
-            } else {
-                return {
-                    status: 404,
-                    message: 'personel bulunamadı'
-                };
+            } catch (error) {
+                if (queryRunner.isTransactionActive) {
+                    await queryRunner.rollbackTransaction();
+                }
+                throw new BadRequestException(error.message || 'İlişkili kullanici güncelleme hatası');
+            } finally {
+                await queryRunner.release();
             }
-        } catch (error) {
-            throw new BadRequestException(
-                error.message || 'personel geri getirme hatası'
-            );
-        }
-    }
+        } */
 
 
-
-
-
-
-
-    async iliskiUpdate(userId: number, data: UpdateIliskiDto) {
-        if (!userId) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-        if (!data.KullaniciID || !data.IliskiID || !data.GrupID || !data.PersonelID) {
-            throw new BadRequestException('Geçersiz kullanıcı, grup veya ilişki bilgisi');
-        }
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: userId } });
-        if (!user) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-
-        const userRole = await this.dataSource.getRepository(Personel).findOne({ where: { KullaniciID: userId, IliskiID: data.IliskiID, Tip: user.KullaniciTipi === 3 ? 3 : 1 } });
-        if (!userRole || userRole.Rol !== 'owner') throw new BadRequestException(`Bu işlem için yetkiniz yok`);
-
-        const idsorgu = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: data.KullaniciID } });
-        if (!idsorgu) throw new BadRequestException(`Kullanıcı bulunamadı`);
-
-        const userIliski = await this.dataSource.getRepository(Personel).findOne({
-            where: { IliskiID: data.IliskiID, KullaniciID: data.KullaniciID, Tip: user.KullaniciTipi === 3 ? 3 : 1 }
-        });
-        if (!userIliski) throw new BadRequestException(`Bu ilişkiye ait kullanıcı bulunamadı`);
-
-        if (!userIliski || userIliski.Rol === 'owner') throw new BadRequestException(`Owner yetkisi olan kullanıcılar üzerinde güncelleme işlemi yapılamaz`);
-
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            // Kullanıcı rolünü güncelle
-            await queryRunner.manager.getRepository(Personel).update({ PersonelID: userIliski.PersonelID }, { GrupID: data.GrupID });
-
-            await queryRunner.commitTransaction();
-
-            const queryBuilder = this.personelRepository.createQueryBuilder('personel')
-                .leftJoinAndSelect('personel.Kullanici', 'Kullanici')
-                .leftJoinAndSelect('personel.Grup', 'Grup')
-                .where('personel.PersonelID = :id', { id: userIliski.PersonelID })
-            if (user.KullaniciTipi === 1) {
-                queryBuilder
-                    .leftJoinAndSelect('Firma', 'Firma', 'Firma.FirmaID = personel.IliskiID');
-            } else if (user.KullaniciTipi === 3) {
-                queryBuilder
-                    .leftJoinAndSelect('Teknokentler', 'Teknokent', 'Teknokent.TeknokentID = personel.IliskiID');
-            }
-            return await queryBuilder.getOne();
-        } catch (error) {
-            if (queryRunner.isTransactionActive) {
-                await queryRunner.rollbackTransaction();
-            }
-            throw new BadRequestException(error.message || 'İlişkili kullanici güncelleme hatası');
-        } finally {
-            await queryRunner.release();
-        }
-    }
-
-
-
-    async iliskiDelete(userId: number, data: any) {
-        if (!userId) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: userId } });
-        if (!user) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-
-        const userRole = await this.dataSource.getRepository(Personel).findOne({ where: { KullaniciID: userId, Tip: user.KullaniciTipi === 3 ? 3 : 1 } });
-        if (!userRole || userRole.Rol !== 'owner') throw new BadRequestException(`Bu işlem için yetkiniz yok`);
-
-        if (!data || !data.itemId) {
-            throw new BadRequestException('Geçersiz kullanıcı veya ilişki bilgisi');
-        }
-
-
-
-        const userIliski = await this.dataSource.getRepository(Personel).findOne({
-            where: { PersonelID: data.itemId, Tip: user.KullaniciTipi === 3 ? 3 : 1 }
-        });
-        if (!userIliski) throw new BadRequestException(`Bu ilişkiye ait kullanıcı bulunamadı`);
-        if (!userIliski || userIliski.Rol === 'owner') throw new BadRequestException(`Owner yetkisi olan kullanıcılar üzerinde silme işlemi yapılamaz`);
-
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-
-            // Kullanıcıyı sil
-            await queryRunner.manager.getRepository(Personel).update(
-                { PersonelID: userIliski.PersonelID },
-                { GrupID: null, KullaniciID: null, Rol: null });
-
-            await queryRunner.commitTransaction();
-            return {
-                message: 'Kullanıcı ilişkisi başarıyla silindi',
-            };
-        } catch (error) {
-            if (queryRunner.isTransactionActive) {
-                await queryRunner.rollbackTransaction();
-            }
-            throw new BadRequestException(error.message || 'Kullanıcı ilişkisi silme hatası');
-        } finally {
-            await queryRunner.release();
-        }
-    }
-
-
-    async getIliskiKullanicilari(userId: number) {
-        if (!userId) {
-            throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-        }
-
-        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
-        }
-
-        try {
-            /* const aktifAbonelikler = await this.dataSource.getRepository(FirmaAbonelikleri)
-                .createQueryBuilder('a')
-                .where('a.BitisTarihi > :today', { today: new Date() })
-                .getMany(); */
-            // Kullanıcı firmalarını getir
-            const queryBuilder = this.dataSource.getRepository(Personel)
-                .createQueryBuilder('kf')
-                .leftJoinAndSelect('kf.Grup', 'Grup')
-                .where('kf.KullaniciID = :KullaniciID', { KullaniciID: userId })
-                .andWhere('kf.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 });
-
-
-            let kullaniciIliskileri = [];
-            let kullaniciIliskisi = null;
-
-            if (user.KullaniciTipi === 3) {
-                queryBuilder.leftJoinAndSelect('Teknokentler', 'Teknokent', 'Teknokent.TeknokentID = kf.IliskiID');
-                queryBuilder.andWhere('Teknokent.IsDeleted != :IsDeleted', { IsDeleted: true })
-                kullaniciIliskisi = await queryBuilder.getRawOne();
-            } else {
-                queryBuilder.leftJoinAndSelect('Firma', 'Firma', 'Firma.FirmaID = kf.IliskiID')
-                queryBuilder.andWhere('Firma.IsDeleted != :IsDeleted', { IsDeleted: true })
-                kullaniciIliskileri = await queryBuilder.getRawMany();
-            }
-
-            let grup = {};
-            // Her bir kullanici kaydı için Gurup ilişkisini kontrol edip GrupYetkileri'ni ekliyoruz
-            if (kullaniciIliskileri.length > 0 && user.KullaniciTipi !== 3) {
-                for (const kf of kullaniciIliskileri) {
-                    /* const aktifAbonelikVarMi = aktifAbonelikler.some(
-                        (a) => a.FirmaID === kf.Firma?.FirmaID
-                    );
+    /* 
+        async iliskiDelete(userId: number, data: any) {
+            if (!userId) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
     
-                    (kf as any).AbonelikAktif = aktifAbonelikVarMi; */
-
-                    // Sadece abonelik aktifse yetkileri getir
-                    if (kf.Grup) {
-                        const grupYetkileri = await this.dataSource.getRepository(GrupYetkileri)
-                            .createQueryBuilder('yetkiler')
-                            .where('yetkiler.GrupID = :GrupID', { GrupID: kf.Grup.GrupID })
-                            .getMany();
-
-                        grup = {
-                            GrupID: kf.Grup_GrupID,
-                            IliskiID: kf.Grup_IliskiID,
-                            GrupAdi: kf.Grup_GrupAdi,
-                            Tip: kf.Grup_Tip,
-                            Yetkiler: grupYetkileri ? grupYetkileri.map((g) => g.Yetki) : []
-                        }
-                    }
-                }
-                return kullaniciIliskileri.map(ky => ({
-                    id: ky.kf_PersonelID,
-                    FirmaID: ky.kf_IliskiID,
-                    Firma: {
-                        FirmaID: ky.Firma_FirmaID,
-                        FirmaAdi: ky.Firma_FirmaAdi,
-                        PortalLinki: ky.Firma_PortalLinki,
-                        PortalKullaniciAdi: ky.Firma_PortalKullaniciAdi,
-                        MesaiBaslangic: ky.Firma_MesaiBaslangic,
-                        MesaiBitis: ky.Firma_MesaiBitis,
-                        CalismaGunleri: ky.Firma_CalismaGunleri,
-                        IsDeleted: ky.Firma_IsDeleted
-                    },
-                    Rol: ky.kf_Rol,
-                    AbonelikAktif: ky.AbonelikAktif ?? true,
-                    Grup: grup
-                }));
+            const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: userId } });
+            if (!user) throw new BadRequestException(`Kullanıcı kimliği gereklidir`);
+    
+            const userRole = await this.dataSource.getRepository(Personel).findOne({ where: { KullaniciID: userId, Tip: user.KullaniciTipi === 3 ? 3 : 1 } });
+            if (!userRole || userRole.Rol !== 'owner') throw new BadRequestException(`Bu işlem için yetkiniz yok`);
+    
+            if (!data || !data.itemId) {
+                throw new BadRequestException('Geçersiz kullanıcı veya ilişki bilgisi');
             }
-
-            if (kullaniciIliskisi && user.KullaniciTipi === 3) {
-                if (kullaniciIliskisi.Grup_GrupID) {
-                    const grupYetkileri = await this.dataSource.getRepository(GrupYetkileri)
-                        .createQueryBuilder('yetkiler')
-                        .where('yetkiler.GrupID = :GrupID', { GrupID: kullaniciIliskisi.Grup_GrupID })
-                        .getMany();
-
-                    grup = {
-                        GrupID: kullaniciIliskisi.Grup_GrupID,
-                        IliskiID: kullaniciIliskisi.Grup_IliskiID,
-                        GrupAdi: kullaniciIliskisi.Grup_GrupAdi,
-                        Tip: kullaniciIliskisi.Grup_Tip,
-                        Yetkiler: grupYetkileri ? grupYetkileri.map((g) => g.Yetki) : []
-                    }
-                }
+    
+    
+    
+            const userIliski = await this.dataSource.getRepository(Personel).findOne({
+                where: { PersonelID: data.itemId, Tip: user.KullaniciTipi === 3 ? 3 : 1 }
+            });
+            if (!userIliski) throw new BadRequestException(`Bu ilişkiye ait kullanıcı bulunamadı`);
+            if (!userIliski || userIliski.Rol === 'owner') throw new BadRequestException(`Owner yetkisi olan kullanıcılar üzerinde silme işlemi yapılamaz`);
+    
+            const queryRunner = this.dataSource.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+    
+            try {
+    
+                // Kullanıcıyı sil
+                await queryRunner.manager.getRepository(Personel).update(
+                    { PersonelID: userIliski.PersonelID },
+                    { GrupID: null, KullaniciID: null, Rol: null });
+    
+                await queryRunner.commitTransaction();
                 return {
-                    id: kullaniciIliskisi.kf_PersonelID,
-                    TeknokentID: kullaniciIliskisi.kf_IliskiID,
-                    Teknokent: {
-                        TeknokentID: kullaniciIliskisi.Teknokent_TeknokentID,
-                        TeknokentAdi: kullaniciIliskisi.Teknokent_TeknokentAdi,
-                        Sehir: kullaniciIliskisi.Teknokent_Sehir,
-                        Ilce: kullaniciIliskisi.Teknokent_Ilce,
-                        Telefon: kullaniciIliskisi.Teknokent_Telefon,
-                        Eposta: kullaniciIliskisi.Teknokent_Eposta,
-                        WebSitesi: kullaniciIliskisi.Teknokent_WebSitesi,
-                        Adres: kullaniciIliskisi.Teknokent_Adres,
-                        IsDeleted: kullaniciIliskisi.Teknokent_IsDeleted,
-                    },
-                    Rol: kullaniciIliskisi.kf_Rol,
-                    Grup: grup
+                    message: 'Kullanıcı ilişkisi başarıyla silindi',
                 };
+            } catch (error) {
+                if (queryRunner.isTransactionActive) {
+                    await queryRunner.rollbackTransaction();
+                }
+                throw new BadRequestException(error.message || 'Kullanıcı ilişkisi silme hatası');
+            } finally {
+                await queryRunner.release();
             }
-
-        } catch (error) {
-            throw new BadRequestException(error.message || 'Kullanıcı ilişkileri getirme hatası');
-        }
-    }
+        } */
 
 
 
-    async iliskiKullanicilariQuery(userId: number, query: any, iliskiId: number) {
+
+
+
+   /*  async iliskiKullanicilariQuery(userId: number, query: any, iliskiId: number) {
         const page = parseInt(query.page) || 1;
         const limit = parseInt(query.items_per_page) || 10;
 
@@ -906,5 +780,5 @@ export class PersonelService {
         } catch (error) {
             throw new BadRequestException(error.message || 'Firma kullanıcılarını getirme hatası');
         }
-    }
+    } */
 }

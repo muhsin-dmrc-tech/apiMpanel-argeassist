@@ -7,8 +7,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { format, subMonths } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Projeler } from 'src/projeler/entities/projeler.entity';
-import { GorevListesi } from 'src/gorev-listesi/entities/gorev.listesi.entity';
-import { Firma } from 'src/firmalar/entities/firma.entity';
 
 @Injectable()
 export class DonemService {
@@ -315,7 +313,7 @@ export class DonemService {
 
 
             // Dönem oluşturulduktan sonra görev listesi oluştur
-            await this.gorevListesiOlustur(donem);
+            //await this.gorevListesiOlustur(donem);
 
             console.log(`Yeni dönem oluşturuldu: ${donemAdi}`);
         } catch (error) {
@@ -324,7 +322,7 @@ export class DonemService {
         }
     }
 
-    async gorevListesiOlustur(donem: Donem): Promise<void> {
+   /*  async gorevListesiOlustur(donem: Donem): Promise<void> {
         try {
             // Aktif projeleri getir
             const projeler = await this.dataSource.getRepository(Projeler).find({
@@ -405,5 +403,5 @@ export class DonemService {
             console.error('Görev listesi oluşturma hatası:', error);
             throw new Error('Görev listesi oluşturulamadı');
         }
-    }
+    } */
 }

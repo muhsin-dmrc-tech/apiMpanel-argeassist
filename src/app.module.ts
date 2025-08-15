@@ -18,72 +18,24 @@ import { LogsService } from './logs-tables/logs.service';
 import { JwtService } from '@nestjs/jwt';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { KullanicilarModule } from './kullanicilar/kullanicilar.module';
-import { FirmalarModule } from './firmalar/firmalar.module';
-import { PersonelService } from './personel/personel.service';
-import { PersonelController } from './personel/personel.controller';
-import { PersonelModule } from './personel/personel.module';
 import { DonemModule } from './donem/donem.module';
 import { IzinTuruModule } from './izin-turu/izin-turu.module';
-import { IzinTalepleriModule } from './izin-talepleri/izin-talepleri.module';
-import { IzinSureleriModule } from './izin-sureleri/izin-sureleri.module';
 import { ProjelerModule } from './projeler/projeler.module';
 import { RotaIzinleriModule } from './rota-izinleri/rota-izinleri.module';
-import { PdksModule } from './pdks/pdks.module';
 import { ResmitatillerModule } from './resmitatiller/resmitatiller.module';
-import { DisaridaGecirilenSurelerModule } from './disarida-gecirilen-sureler/disarida-gecirilen-sureler.module';
-import { DisaridaGecirilenFormModule } from './disarida-gecirilen-form/disarida-gecirilen-form.module';
 import { CalismaTuruModule } from './calisma-turu/calisma-turu.module';
 import { GorevlendirmeTuruModule } from './gorevlendirme-turu/gorevlendirme-turu.module';
-import { KullaniciDavetleriModule } from './kullanici-davetleri/kullanici-davetleri.module';
-import { ProjeIlerlemeBilgilerModule } from './proje-ilerleme-bilgiler/proje-ilerleme-bilgiler.module';
-import { FirmaMuafiyetBilgilerModule } from './firma-muafiyet-bilgiler/firma-muafiyet-bilgiler.module';
 import { MuafiyetTipleriModule } from './muafiyet-tipleri/muafiyet-tipleri.module';
-import { ProjeGelirBilgileriModule } from './proje-gelir-bilgileri/proje-gelir-bilgileri.module';
 import { BildirimlerModule } from './bildirimler/bildirimler.module';
 import { KullaniciBildirimleriModule } from './kullanici-bildirimleri/kullanici-bildirimleri.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { FirmaAbonelikleriModule } from './firma-abonelikleri/firma-abonelikleri.module';
-import { AbonelikPlanlariModule } from './abonelik-planlari/abonelik-planlari.module';
-import { FaturalarModule } from './faturalar/faturalar.module';
-import { OdemelerModule } from './odemeler/odemeler.module';
-import { FaturaBilgileriModule } from './fatura-bilgileri/fatura-bilgileri.module';
-import { ProjeGiderBilgileriModule } from './proje-gider-bilgileri/proje-gider-bilgileri.module';
 import { GiderTipleriModule } from './gider-tipleri/gider-tipleri.module';
-import { ProjeDisiGiderBilgileriModule } from './proje-disi-gider-bilgileri/proje-disi-gider-bilgileri.module';
-import { ProjeDisiGelirBilgileriModule } from './proje-disi-gelir-bilgileri/proje-disi-gelir-bilgileri.module';
-import { SiparislerModule } from './siparisler/siparisler.module';
 import { SozlesmelerModule } from './sozlesmeler/sozlesmeler.module';
-import { ProjeDisiDisTicaretBilgileriModule } from './proje-disi-dis-ticaret-bilgileri/proje-disi-dis-ticaret-bilgileri.module';
-import { PdksplanModule } from './pdksplan/pdksplan.module';
-import { SgkhizmetListesiModule } from './sgkhizmet-listesi/sgkhizmet-listesi.module';
-import { TeknokentlerModule } from './teknokentler/teknokentler.module';
 import { ProjeBasvuruModule } from './proje-basvuru/proje-basvuru.module';
-import { GorevListesiModule } from './gorev-listesi/gorev-listesi.module';
-import { ProjeDisTicaretBilgileriModule } from './proje-dis-ticaret-bilgileri/proje-dis-ticaret-bilgileri.module';
-import { KullaniciGruplariModule } from './kullanici-gruplari/kullanici-gruplari.module';
-import { GrupYetkileriModule } from './grup-yetkileri/grup-yetkileri.module';
 import { getConfig } from '../db/data-source.config';
-import { DisardaGecirilenSurelerPlanModule } from './disarda-gecirilen-sureler-plan/disarda-gecirilen-sureler-plan.module';
-import { ProjeIlerlemeBilgilerPlanModule } from './proje-ilerleme-bilgiler-plan/proje-ilerleme-bilgiler-plan.module';
-import { ProjeGelirBilgilerPlanModule } from './proje-gelir-bilgiler-plan/proje-gelir-bilgiler-plan.module';
-import { ProjeGiderBilgilerPlanModule } from './proje-gider-bilgiler-plan/proje-gider-bilgiler-plan.module';
-import { ProjeDisTicaretBilgilerPlanModule } from './proje-dis-ticaret-bilgiler-plan/proje-dis-ticaret-bilgiler-plan.module';
-import { ProjeDisiDisTicaretBilgilerPlanModule } from './proje-disi-dis-ticaret-bilgiler-plan/proje-disi-dis-ticaret-bilgiler-plan.module';
-import { ProjeDisiGelirBilgilerPlanModule } from './proje-disi-gelir-bilgiler-plan/proje-disi-gelir-bilgiler-plan.module';
-import { ProjeDisiGiderBilgilerPlanModule } from './proje-disi-gider-bilgiler-plan/proje-disi-gider-bilgiler-plan.module';
-import { FirmaMuafiyetBilgilerPlanModule } from './firma-muafiyet-bilgiler-plan/firma-muafiyet-bilgiler-plan.module';
-import { BordroKayitlariModule } from './bordro-kayitlari/bordro-kayitlari.module';
-import { DestekTipleriModule } from './destek-tipleri/destek-tipleri.module';
-import { DestekTalepleriModule } from './destek-talepleri/destek-talepleri.module';
-import { ProjeRaporlariModule } from './proje-raporlari/proje-raporlari.module';
-import { SohbetlerModule } from './sohbetler/sohbetler.module';
 import { SureclerModule } from './surecler/surecler.module';
-import { FirebaseAdminModule } from './firebase-admin.module';
 import { PdfAnalizModule } from './pdf-analiz/pdf-analiz.module';
-import { MpAuthModule } from './mp-auth/mp-auth.module';
-import { MpKullanicilarModule } from './mp-kullanicilar/mp-kullanicilar.module';
-import { MpLoginKayitlariModule } from './mp-login-kayitlari/mp-login-kayitlari.module';
-import { MpDokumanlarModule } from './mp-dokumanlar/mp-dokumanlar.module';
+import { DokumanlarModule } from './dokumanlar/dokumanlar.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -97,84 +49,71 @@ import { MpDokumanlarModule } from './mp-dokumanlar/mp-dokumanlar.module';
         limit: 40,
       },
     ]),
-    FirebaseAdminModule,
+    //FirebaseAdminModule,
     KullanicilarModule,
     AuthModule,
     LoginKayitlariModule,
     LogsModule,
-    FirmalarModule,
+    //FirmalarModule,
     DonemModule,
-    PersonelModule,
+    //PersonelModule,
     IzinTuruModule,
-    IzinTalepleriModule,
-    IzinSureleriModule,
+    //IzinTalepleriModule,
+   // IzinSureleriModule,
     ProjelerModule,
     RotaIzinleriModule,
     MailModule,
     EmailTemplatesModule,
-    PdksModule,
+    //PdksModule,
     ResmitatillerModule,
-    DisaridaGecirilenSurelerModule,
-    DisaridaGecirilenFormModule,
+   // DisaridaGecirilenSurelerModule,
+    //DisaridaGecirilenFormModule,
     CalismaTuruModule,
     GorevlendirmeTuruModule,
-    KullaniciDavetleriModule,
-    ProjeIlerlemeBilgilerModule,
-    FirmaMuafiyetBilgilerModule,
+   //KullaniciDavetleriModule,
+   // ProjeIlerlemeBilgilerModule,
+   // FirmaMuafiyetBilgilerModule,
     MuafiyetTipleriModule,
-    ProjeGelirBilgileriModule,
+    //ProjeGelirBilgileriModule,
     BildirimlerModule,
     KullaniciBildirimleriModule,
-    FirmaAbonelikleriModule,
-    AbonelikPlanlariModule,
-    FaturalarModule,
-    OdemelerModule,
-    FaturaBilgileriModule,
-    ProjeGiderBilgileriModule,
+    //FirmaAbonelikleriModule,
+    //AbonelikPlanlariModule,
+   // FaturalarModule,
+    //OdemelerModule,
+    //FaturaBilgileriModule,
+   // ProjeGiderBilgileriModule,
     GiderTipleriModule,
-    ProjeDisiGiderBilgileriModule,
-    ProjeDisiGelirBilgileriModule,
-    SiparislerModule,
+   // ProjeDisiGiderBilgileriModule,
+    //ProjeDisiGelirBilgileriModule,
+    //SiparislerModule,
     SozlesmelerModule,
-    ProjeDisiDisTicaretBilgileriModule,
-    PdksplanModule,
-    SgkhizmetListesiModule,
-    TeknokentlerModule,
+   // ProjeDisiDisTicaretBilgileriModule,
+    //SgkhizmetListesiModule,
+    //TeknokentlerModule,
     ProjeBasvuruModule,
-    GorevListesiModule,
-    ProjeDisTicaretBilgileriModule,
-    KullaniciGruplariModule,
-    GrupYetkileriModule,
-    DisardaGecirilenSurelerPlanModule,
-    ProjeIlerlemeBilgilerPlanModule,
-    ProjeGelirBilgilerPlanModule,
-    ProjeGiderBilgilerPlanModule,
-    ProjeDisTicaretBilgilerPlanModule,
-    ProjeDisiDisTicaretBilgilerPlanModule,
-    ProjeDisiGelirBilgilerPlanModule,
-    ProjeDisiGiderBilgilerPlanModule,
-    FirmaMuafiyetBilgilerPlanModule,
-    BordroKayitlariModule,
-    DestekTipleriModule,
-    DestekTalepleriModule,
-    ProjeRaporlariModule,
-    SohbetlerModule,
+    //GorevListesiModule,
+    //ProjeDisTicaretBilgileriModule,
+   // KullaniciGruplariModule,
+    //GrupYetkileriModule,
+    //BordroKayitlariModule,
+    //DestekTipleriModule,
+    //DestekTalepleriModule,
+    //ProjeRaporlariModule,
+    //SohbetlerModule,
     SureclerModule,
     PdfAnalizModule,
-    MpAuthModule,
-    MpKullanicilarModule,
-    MpLoginKayitlariModule,
-    MpDokumanlarModule,
+    DokumanlarModule,
   ],
   controllers: [
     AppController,
     KullanicilarController,
-    PersonelController
+    //PersonelController
   ],
   providers: [
     AppService,
     KullanicilarService,
-    PersonelService,
+    //PersonelService,
     AppGateway,
     {
       provide: APP_GUARD,

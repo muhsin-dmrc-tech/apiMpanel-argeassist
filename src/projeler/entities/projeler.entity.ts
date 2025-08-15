@@ -1,7 +1,6 @@
-import { Firma } from 'src/firmalar/entities/firma.entity';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
-import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
-import { GorevListesi } from 'src/gorev-listesi/entities/gorev.listesi.entity';
+/* import { Teknokentler } from 'src/teknokentler/entities/teknokentler.entity';
+import { GorevListesi } from 'src/gorev-listesi/entities/gorev.listesi.entity'; */
 import {
   Entity,
   Column,
@@ -10,7 +9,7 @@ import {
   OneToMany,
   JoinColumn
 } from 'typeorm';
-import { ProjeRaporlari } from 'src/proje-raporlari/entities/proje-raporlari.entity';
+//import { ProjeRaporlari } from 'src/proje-raporlari/entities/proje-raporlari.entity';
 
 @Entity('Projeler')
 export class Projeler {
@@ -24,7 +23,7 @@ export class Projeler {
   STBProjeKodu: string;
 
   @Column({ type: 'int', nullable:false })
-  FirmaID: number;
+  KullaniciID: number;
 
   @Column({ type: 'int', nullable:false })
   TeknokentID: number;
@@ -47,13 +46,13 @@ export class Projeler {
   @Column({ nullable: true, type: 'bit', default:0 })
   IsDeleted: boolean;
 
-  @ManyToOne(() => Firma, firma => firma.Projeler, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'FirmaID' })
-  Firma: Firma;
+  @ManyToOne(() => Kullanicilar, kullanici => kullanici.Projeler, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'KullaniciID' })
+  Kullanici: Kullanicilar;
 
-  @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID)
+  /* @ManyToOne(() => Teknokentler, teknokent => teknokent.TeknokentID)
   @JoinColumn({ name: 'TeknokentID' })
-  Teknokent: Teknokentler;
+  Teknokent: Teknokentler; */
 
   @ManyToOne(() => Kullanicilar, kullanicilar => kullanicilar.id, { nullable:true})
   @JoinColumn({ name: 'ProjeUzmanKullaniciID' })
@@ -63,9 +62,9 @@ export class Projeler {
   @JoinColumn({ name: 'ProjeHakemKullaniciID' })
   ProjeHakemKullanici: Kullanicilar;
 
-  @OneToMany(() => GorevListesi, gorevListesi => gorevListesi.Proje)
-  GorevListeleri: GorevListesi[];
+  /* @OneToMany(() => GorevListesi, gorevListesi => gorevListesi.Proje)
+  GorevListeleri: GorevListesi[]; */
 
-  @OneToMany(() => ProjeRaporlari, rapor => rapor.Proje)
-  ProjeRaporlari: ProjeRaporlari[];
+ /*  @OneToMany(() => ProjeRaporlari, rapor => rapor.Proje)
+  ProjeRaporlari: ProjeRaporlari[]; */
 }

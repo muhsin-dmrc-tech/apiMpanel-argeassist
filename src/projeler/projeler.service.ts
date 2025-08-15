@@ -15,14 +15,14 @@ export class ProjelerService {
         private readonly dataSource: DataSource
     ) { }
 
-    async getProje(TeknokentID: number, ProjeID: number) {
-        if (!TeknokentID || !ProjeID) {
-            throw new BadRequestException('Teknokent ID ve Proje ID gereklidir');
+    async getProje(ProjeID: number) {
+        if (!ProjeID) {
+            throw new BadRequestException('Proje ID gereklidir');
         }
         try {
             const proje = await this.dataSource
                 .getRepository(Projeler)
-                .findOne({ where: { IsDeleted: false, TeknokentID: TeknokentID, ProjeID: ProjeID } });
+                .findOne({ where: { IsDeleted: false, ProjeID: ProjeID } });
 
             if (!proje) {
                 throw new BadRequestException('Proje bulunamadı');
@@ -33,19 +33,17 @@ export class ProjelerService {
         }
     }
 
-    async getProjeDetayTeknoAdmin(ProjeID: number, teknokentId: number | null) {
+    async getProjeDetayAdmin(ProjeID: number) {
         if (!ProjeID) {
             throw new BadRequestException('Proje ID gereklidir');
         }
         try {
             const queryBuilder = this.dataSource.getRepository(Projeler).createQueryBuilder('projeler')
-                .leftJoinAndSelect('projeler.Firma', 'Firma')
-                .leftJoinAndSelect('projeler.Teknokent', 'Teknokent')
+                .leftJoinAndSelect('projeler.Kullanici', 'Kullanici')
+                //.leftJoinAndSelect('projeler.Teknokent', 'Teknokent')
                 .leftJoinAndSelect('projeler.ProjeUzmanKullanici', 'ProjeUzmanKullanici')
                 .where('projeler.ProjeID = :ProjeID', { ProjeID: ProjeID });
-            if (teknokentId) {
-                queryBuilder.andWhere('projeler.TeknokentID = :TeknokentID', { TeknokentID: teknokentId });
-            }
+            
 
             const proje = await queryBuilder.getOne();
             return proje;
@@ -63,14 +61,15 @@ export class ProjelerService {
         return Projelerlar;
     }
 
-    async getFirmaProjeler(FirmaID: number) {
-        if (!FirmaID) {
-            throw new BadRequestException('Firma ID gereklidir');
+    async getFirmaProjeler(userId:number) {
+         const user = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: userId } });
+        if (!user) {
+            throw new BadRequestException('Kullanıcı kimliği geçersiz');
         }
         try {
             const projeler = await this.dataSource
                 .getRepository(Projeler)
-                .find({ where: { IsDeleted: false, FirmaID: FirmaID } });
+                .find({ where: { IsDeleted: false, KullaniciID: userId } });
 
             return projeler;
         } catch (error) {
@@ -82,7 +81,7 @@ export class ProjelerService {
 
 
 
-    async getProjeler(userId: number, query: any, firmaId: number) {
+    async getProjeler(userId: number, query: any) {
         const page = parseInt(query.page) || 1;
         const limit = parseInt(query.items_per_page) || 10;
         const sort = query.sort || 'ProjeID';
@@ -108,21 +107,21 @@ export class ProjelerService {
 
 
         const queryBuilder = this.dataSource.getRepository(Projeler).createQueryBuilder('projeler')
-            .leftJoinAndSelect('projeler.Firma', 'Firma')
-            .where('projeler.FirmaID = :FirmaID', { FirmaID: firmaId });
+            .leftJoinAndSelect('projeler.Kullanici', 'Kullanici')
+            .where('projeler.KullaniciID = :KullaniciID', { KullaniciID: userId });
 
         // Filtreleme işlemi
         Object.keys(filter).forEach((key) => {
             const validFilterFields = {
                 'ProjeAdi': 'projeler.ProjeAdi',
-                'Firma': 'Firma.FirmaAdi',
+                'Kullanici': 'Kullanici.FirmaAdi',
                 'query': null // Genel arama için
             };
 
             if (key === 'query') {
                 // Tüm alanlarda arama yap
                 queryBuilder.andWhere(new Brackets(qb => {
-                    qb.where('Firma.FirmaAdi LIKE :searchTerm')
+                    qb.where('Kullanici.FirmaAdi LIKE :searchTerm')
                         .orWhere('CAST(projeler.ProjeAdi AS VARCHAR) LIKE :searchTerm')
                 }), { searchTerm: `%${filter[key]}%` });
             } else if (validFilterFields[key]) {
@@ -137,7 +136,7 @@ export class ProjelerService {
         }
         // Sıralama işlemi
         if (sort === 'Firma') {
-            queryBuilder.orderBy('Firma.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+            queryBuilder.orderBy('Kullanici.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
         } else {
             queryBuilder.orderBy(`projeler.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
         }
@@ -296,7 +295,7 @@ export class ProjelerService {
 
 
 
-    async getProjelerTeknoAdmin(userId: number, query: any, teknokentId: number) {
+    async getProjelerAdmin(userId: number, query: any) {
         const page = parseInt(query.page) || 1;
         const limit = parseInt(query.items_per_page) || 10;
         const sort = query.sort || 'ProjeID';
@@ -322,21 +321,20 @@ export class ProjelerService {
 
 
         const queryBuilder = this.dataSource.getRepository(Projeler).createQueryBuilder('projeler')
-            .leftJoinAndSelect('projeler.Firma', 'Firma')
-            .where('projeler.TeknokentID = :TeknokentID', { TeknokentID: teknokentId });
+            .leftJoinAndSelect('projeler.Kullanici', 'Kullanici')
 
         // Filtreleme işlemi
         Object.keys(filter).forEach((key) => {
             const validFilterFields = {
                 'ProjeAdi': 'projeler.ProjeAdi',
-                'Firma': 'Firma.FirmaAdi',
+                'Kullanici': 'Kullanici.FirmaAdi',
                 'query': null // Genel arama için
             };
 
             if (key === 'query') {
                 // Tüm alanlarda arama yap
                 queryBuilder.andWhere(new Brackets(qb => {
-                    qb.where('Firma.FirmaAdi LIKE :searchTerm')
+                    qb.where('Kullanici.FirmaAdi LIKE :searchTerm')
                         .orWhere('CAST(projeler.ProjeAdi AS VARCHAR) LIKE :searchTerm')
                 }), { searchTerm: `%${filter[key]}%` });
             } else if (validFilterFields[key]) {
@@ -351,7 +349,7 @@ export class ProjelerService {
         }
         // Sıralama işlemi
         if (sort === 'Firma') {
-            queryBuilder.orderBy('Firma.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+            queryBuilder.orderBy('Kullanici.FirmaAdi', order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
         } else {
             queryBuilder.orderBy(`projeler.${sort}`, order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
         }
@@ -376,7 +374,7 @@ export class ProjelerService {
 
 
 
-    async getAktifProjelerTeknoAdmin(userId: number, teknokentId: number | null) {
+    async getAktifProjelerAdmin(userId: number) {
         if (!userId) {
             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
         }
@@ -385,11 +383,9 @@ export class ProjelerService {
 
         try {
             const queryBuilder = this.dataSource.getRepository(Projeler).createQueryBuilder('projeler')
-                .leftJoinAndSelect('projeler.Firma', 'Firma')
-                .leftJoinAndSelect('projeler.Teknokent', 'Teknokent');
-            if (teknokentId) {
-                queryBuilder.where('projeler.TeknokentID = :TeknokentID', { TeknokentID: teknokentId });
-            }
+                .leftJoinAndSelect('projeler.Kullanici', 'Kullanici')
+                //.leftJoinAndSelect('projeler.Teknokent', 'Teknokent');
+           
             const [projeler, total] = await queryBuilder.getManyAndCount();
             return projeler
         } catch (error) {
@@ -398,7 +394,7 @@ export class ProjelerService {
     }
 
 
-    async create(userId: number, data: { ProjeAdi: string, FirmaID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }) {
+    async create(userId: number, data: { ProjeAdi: string, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }) {
 
 
         if (!userId) {
@@ -413,8 +409,8 @@ export class ProjelerService {
             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
         }
 
-        if (!data.ProjeAdi && !data.FirmaID && !data.TeknokentID) {
-            throw new BadRequestException(`Proje adı, Teknokent ID ve Firma ID zorunludur`);
+        if (!data.ProjeAdi && !data.TeknokentID) {
+            throw new BadRequestException(`Proje adı, Teknokent ID zorunludur`);
         }
         if (!data.ProjeKodu && !data.STBProjeKodu && !data.BaslangicTarihi) {
             throw new BadRequestException(`Proje Kodu, STB Proje Kodu ve Baslangic Tarihi zorunludur`);
@@ -423,7 +419,7 @@ export class ProjelerService {
         try {
             const projeler = await this.projelerRepository.save({
                 ProjeAdi: data.ProjeAdi,
-                FirmaID: data.FirmaID,
+                KullaniciID: userId,
                 TeknokentID: data.TeknokentID,
                 ProjeKodu: data.ProjeKodu,
                 STBProjeKodu: data.STBProjeKodu,
@@ -432,7 +428,7 @@ export class ProjelerService {
             });
 
             return await this.projelerRepository.createQueryBuilder('proje')
-                .leftJoinAndSelect('proje.Firma', 'Firma')
+                .leftJoinAndSelect('proje.Kullanici', 'Kullanici')
                 .where('proje.ProjeID = :ProjeID', { ProjeID: projeler.ProjeID })
                 .getOne();
         } catch (error) {
@@ -442,7 +438,7 @@ export class ProjelerService {
         }
     }
 
-    async update(userId: number, data: { ProjeAdi: string, ProjeID: number, FirmaID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }) {
+    async update(userId: number, data: { ProjeAdi: string, ProjeID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }) {
 
 
         if (!userId) {
@@ -458,22 +454,21 @@ export class ProjelerService {
         }
 
 
-        if (!data.ProjeID && !data.ProjeAdi && !data.FirmaID && !data.TeknokentID) {
-            throw new BadRequestException(`ProjeID , Teknokent ID, Proje adı ve Firma id zorunludur`);
+        if (!data.ProjeID && !data.ProjeAdi && !data.TeknokentID) {
+            throw new BadRequestException(`ProjeID , Teknokent ID, Proje adı zorunludur`);
         }
         if (!data.ProjeKodu && !data.STBProjeKodu && !data.BaslangicTarihi) {
             throw new BadRequestException(`Proje Kodu, STB Proje Kodu ve Baslangic Tarihi zorunludur`);
         }
 
         try {
-            const proje = await this.projelerRepository.findOne({ where: { ProjeID: data.ProjeID } });
+            const proje = await this.projelerRepository.findOne({ where: { ProjeID: data.ProjeID,KullaniciID:userId } });
 
             if (!proje) {
                 throw new BadRequestException(`proje bulunamadı`);
             }
 
             proje.ProjeAdi = data.ProjeAdi;
-            proje.FirmaID = data.FirmaID;
             proje.TeknokentID = data.TeknokentID;
             proje.ProjeKodu = data.ProjeKodu,
             proje.STBProjeKodu = data.STBProjeKodu,
@@ -482,7 +477,7 @@ export class ProjelerService {
 
             await this.projelerRepository.save(proje);
             return await this.projelerRepository.createQueryBuilder('proje')
-                .leftJoinAndSelect('proje.Firma', 'Firma')
+                .leftJoinAndSelect('proje.Kullanici', 'Kullanici')
                 .where('proje.ProjeID = :ProjeID', { ProjeID: proje.ProjeID })
                 .getOne();
         } catch (error) {
@@ -502,7 +497,7 @@ export class ProjelerService {
             throw new BadRequestException('TeknokentID, Proje Uzman Kullanici ID ve Proje seçimi zorunludur');
 
         const uzmanuser = await this.dataSource.getRepository(Kullanicilar).findOne({ where: { id: data.ProjeUzmanKullaniciID } });
-        if (!uzmanuser || uzmanuser.KullaniciTipi !== 3)
+        if (!uzmanuser || uzmanuser.KullaniciTipi !== 2)
             throw new BadRequestException('Uzman kullanıcı kimliği geçersiz');
 
         try {
@@ -601,7 +596,7 @@ export class ProjelerService {
             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
         }
 
-        if (user.KullaniciTipi !== 3) {
+        if (user.KullaniciTipi !== 2) {
             throw new ForbiddenException(`Bu işlem için yetkiniz yok.`);
         }
 
@@ -615,7 +610,7 @@ export class ProjelerService {
                 await this.projelerRepository.save(proje);
 
                 return await this.projelerRepository.createQueryBuilder('proje')
-                    .leftJoinAndSelect('proje.Firma', 'Firma')
+                    .leftJoinAndSelect('proje.Kullanici', 'Kullanici')
                     .where('proje.ProjeID = :ProjeID', { ProjeID: data.itemId })
                     .getOne();
             } else {
@@ -652,7 +647,7 @@ export class ProjelerService {
         if (!user) {
             throw new BadRequestException(`Kullanıcı Kimliği gereklidir`);
         }
-        if (user.KullaniciTipi !== 3) {
+        if (user.KullaniciTipi !== 2) {
             throw new ForbiddenException(`Bu işlem için yetkiniz yok.`);
         }
 
@@ -668,7 +663,7 @@ export class ProjelerService {
 
                 await this.projelerRepository.save(proje);
                 return await this.projelerRepository.createQueryBuilder('proje')
-                    .leftJoinAndSelect('proje.Firma', 'Firma')
+                    .leftJoinAndSelect('proje.Kullanici', 'Kullanici')
                     .where('proje.ProjeID = :ProjeID', { ProjeID: data.itemId })
                     .getOne();
             } else {
