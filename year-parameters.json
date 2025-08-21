@@ -1,0 +1,66 @@
+{
+    "yearParameters": [
+        {
+            "year": 2025,
+            "asgariUcret": {
+                    "baslangicAyi": 1,
+                    "brutUcret": 26005.50,
+                    "SGKPrimTavani": 195041.40,
+                    "netUcret":22104.67
+                },
+            "SGKPrimiIsci": 0.14,
+            "IssizlikSigortaIsci": 0.01,
+            "DamgaVergisiIsci": 0.00759,
+            "SGKPrimiIsveren": 0.2075,
+            "IssizlikSigortaIsveren": 0.02,
+            "SGDPIsverenOrani":0.225,
+            "AsgariUcretinGelirVergisi": 3315.70,
+            "AsgariUcretinDamgaVergisi": 197.38,
+            "SGKAltSiniri": 26005.50,
+            "SGKUstSiniri": 195041.40,
+            "GelirVergiDilimiOranlari": [
+                { "Aralik": [0, 158000], "Oran": 15, "Vergi": 23700 },
+                { "Aralik": [158000, 330000], "Oran": 20, "Vergi": 23700 },
+                { "Aralik": [330000, 800000], "Oran": 27, "Vergi": 58100 },
+                { "Aralik": [800000, 4300000], "Oran": 35, "Vergi": 185000 },
+                { "Aralik": [4300000, 0], "Oran": 40, "Vergi": 1410000 }
+           ],
+           "engelliIndirimiTablosu":{
+            "1.derece": 9900,
+            "2.derece": 5700,
+            "3.derece": 2400
+           }
+        },
+        {
+            "year": 2024,
+            "asgariUcret": {
+                    "baslangicAyi": 1,
+                    "brutUcret": 20002.50,
+                    "SGKPrimTavani": 150018.90,
+                    "netUcret":17000.20
+                },
+            "SGKPrimiIsci": 0.14,
+            "IssizlikSigortaIsci": 0.01,
+            "DamgaVergisiIsci": 0.00759,
+            "SGKPrimiIsveren": 0.2050,
+            "IssizlikSigortaIsveren": 0.02,
+            "SGDPIsverenOrani":0.225,
+            "AsgariUcretinGelirVergisi": 3315.7,
+            "AsgariUcretinDamgaVergisi": 197.38,
+            "SGKAltSiniri": 20002.50,
+            "SGKUstSiniri": 150018.90,
+            "GelirVergiDilimiOranlari": [
+                { "Aralik": [0, 110000], "Oran": 15, "Vergi": 16500 },
+                { "Aralik": [110000, 230000], "Oran": 20, "Vergi": 40500 },
+                { "Aralik": [230000, 870000], "Oran": 27, "Vergi": 213300 },
+                { "Aralik": [870000, 3000000], "Oran": 35, "Vergi": 979800 },
+                { "Aralik": [3000000, 0], "Oran": 40, "Vergi": 979800 }
+           ],
+           "engelliIndirimiTablosu":{
+            "1.derece": 6900,
+            "2.derece": 4000,
+            "3.derece": 1700
+           }
+        }
+    ]
+}

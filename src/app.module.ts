@@ -36,6 +36,7 @@ import { getConfig } from '../db/data-source.config';
 import { SureclerModule } from './surecler/surecler.module';
 import { PdfAnalizModule } from './pdf-analiz/pdf-analiz.module';
 import { DokumanlarModule } from './dokumanlar/dokumanlar.module';
+import { BordroHesaplamaModule } from './bordro-hesaplama/bordro-hesaplama.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -104,6 +105,7 @@ import { DokumanlarModule } from './dokumanlar/dokumanlar.module';
     SureclerModule,
     PdfAnalizModule,
     DokumanlarModule,
+    BordroHesaplamaModule,
   ],
   controllers: [
     AppController,
