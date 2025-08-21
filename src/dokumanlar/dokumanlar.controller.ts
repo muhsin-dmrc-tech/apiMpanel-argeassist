@@ -8,6 +8,9 @@ import { DataSource } from 'typeorm';
 import { DokumanlarService } from './dokumanlar.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
+import { YetkiRolesGuard } from 'src/auth/firmauser.roles.guard';
+import { Roles, YetkiUserRoles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('dokumanlar')
 export class DokumanlarController {
@@ -16,7 +19,8 @@ export class DokumanlarController {
         private readonly dataSource: DataSource,
     ) { }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('aylik-faaliyet-raporlari')
     async aylikFaaliyetRaporlari(
         @Request() req,
@@ -28,7 +32,8 @@ export class DokumanlarController {
         return this.dokumanlarService.aylikFaaliyetRaporlari(req.user.userId, query);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Get('admin-aylik-faaliyet-raporlari')
     async aylikFaaliyetRaporlariAdmin(
         @Request() req,
@@ -42,7 +47,8 @@ export class DokumanlarController {
 
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-item')
     async getRaporItem(
         @Request() req,
@@ -63,7 +69,8 @@ export class DokumanlarController {
         return this.dokumanlarService.getRaporItem(req.user.userId, ID, DonemID);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-file-analize')
     async getFileAnaliz(
         @Query() query: any,
@@ -92,7 +99,8 @@ export class DokumanlarController {
     }
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-file')
     async getFile(
         @Query() query: any,
@@ -129,7 +137,8 @@ export class DokumanlarController {
         }
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('surec-kayitlari')
     async getSurecKayitlari(
         @Request() req,
@@ -155,7 +164,8 @@ export class DokumanlarController {
 
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Post('/upload-api')
     @UseInterceptors(
         FileInterceptor('file', {
@@ -260,39 +270,40 @@ export class DokumanlarController {
     }
 
 
-    @UseGuards(JwtAuthGuard)
-        @Post('/onay-uploads')
-        async onayUploads(
-            @Body() formData: { RaporID: number, durum: string, surecAnahtar: string, aciklama?: string },
-            @Request() req
-        ) {
-            if (!req.user.userId) {
-                throw new BadRequestException('Kullanıcı Kimliği gereklidir');
-            }
-    
-            const user = await this.dataSource.getRepository(Kullanicilar).findOne({
-                where: { id: req.user.userId },
-            });
-    
-            if (!user) {
-                throw new BadRequestException('Kullanıcı bulunamadı');
-            }
-            if (user.KullaniciTipi !== 2) {
-                throw new ForbiddenException('Yetkisiz kullanıcı tipi');
-            }
-    
-            if (!formData.RaporID || !formData.durum || !formData.surecAnahtar) {
-                throw new BadRequestException('Rapor ID, Süreç anahatarı ve durum zorunludur.');
-            }
-            if (!Number.isInteger(formData.RaporID)) {
-                throw new BadRequestException("Geçersiz Rapor ID");
-            }
-    
-            if (formData.durum === 'reddedildi' && !formData.aciklama) {
-                throw new BadRequestException('Açıklama alanı boş bırakılamaz');
-            }
-    
-            return await this.dokumanlarService.onayUpload(req.user.userId, formData)
-    
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
+    @Post('/onay-uploads')
+    async onayUploads(
+        @Body() formData: { RaporID: number, durum: string, surecAnahtar: string, aciklama?: string },
+        @Request() req
+    ) {
+        if (!req.user.userId) {
+            throw new BadRequestException('Kullanıcı Kimliği gereklidir');
         }
+
+        const user = await this.dataSource.getRepository(Kullanicilar).findOne({
+            where: { id: req.user.userId },
+        });
+
+        if (!user) {
+            throw new BadRequestException('Kullanıcı bulunamadı');
+        }
+        if (user.KullaniciTipi !== 2) {
+            throw new ForbiddenException('Yetkisiz kullanıcı tipi');
+        }
+
+        if (!formData.RaporID || !formData.durum || !formData.surecAnahtar) {
+            throw new BadRequestException('Rapor ID, Süreç anahatarı ve durum zorunludur.');
+        }
+        if (!Number.isInteger(formData.RaporID)) {
+            throw new BadRequestException("Geçersiz Rapor ID");
+        }
+
+        if (formData.durum === 'reddedildi' && !formData.aciklama) {
+            throw new BadRequestException('Açıklama alanı boş bırakılamaz');
+        }
+
+        return await this.dokumanlarService.onayUpload(req.user.userId, formData)
+
+    }
 }

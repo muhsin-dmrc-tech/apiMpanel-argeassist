@@ -5,7 +5,7 @@ import { ProjelerService } from './projeler.service';
 import { YetkiRolesGuard } from 'src/auth/firmauser.roles.guard';
 import { DataSource } from 'typeorm';
 import { Kullanicilar } from 'src/kullanicilar/entities/kullanicilar.entity';
-import { Personel } from 'src/personel/entities/personel.entity';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('projeler')
 export class ProjelerController {
@@ -14,7 +14,8 @@ export class ProjelerController {
         private readonly dataSource: DataSource,
     ) { }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-proje/:id')
     async getProje(
         @Request() req,
@@ -31,7 +32,8 @@ export class ProjelerController {
         return this.projeService.getProje(ProjeID);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-active-projeler')
     async getActiveProjeler(
         @Request() req
@@ -42,7 +44,8 @@ export class ProjelerController {
         return this.projeService.getActiveProjeler();
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('/get-firma-projeler')
     async getFirmaProjeler(
         @Request() req,
@@ -56,7 +59,8 @@ export class ProjelerController {
 
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, YetkiRolesGuard)
+    @YetkiUserRoles('abonelik')
     @Get('get-projeler')
     async getProjeler(
         @Request() req,
@@ -69,7 +73,8 @@ export class ProjelerController {
     }
 
     //Tekno Adminler için
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Get('get-projeler-admin')
     async getProjelerAdmin(
         @Request() req,
@@ -94,7 +99,8 @@ export class ProjelerController {
     }
 
     //Tekno Adminler için
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Get('get-aktif-projeler')
     async getAktifProjelerAdmin(
         @Request() req,
@@ -107,7 +113,8 @@ export class ProjelerController {
     }
 
     //Tekno Adminler için
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Get('get-proje-item-admin/:id')
     async getProjeDetayTeknoAdmin(
         @Request() req,
@@ -137,7 +144,8 @@ export class ProjelerController {
 
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('delete')
     async delete(@Request() req, @Body() data: any,) {
         if (!req.user.userId) {
@@ -147,7 +155,8 @@ export class ProjelerController {
         return this.projeService.delete(req.user.userId, data);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('reload')
     async reload(@Request() req, @Body() data: any,) {
         if (!req.user.userId) {
@@ -157,7 +166,8 @@ export class ProjelerController {
     }
 
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('create')
     async create(@Body() data: { ProjeAdi: string, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
         if (!req.user.userId) {
@@ -166,7 +176,8 @@ export class ProjelerController {
         return this.projeService.create(req.user.userId, data);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('update')
     async update(@Body() data: { ProjeAdi: string, ProjeID: number, TeknokentID: number, ProjeKodu: string, STBProjeKodu: string, BaslangicTarihi: string, BitisTarihi: string }, @Request() req) {
         if (!req.user.userId) {
@@ -175,7 +186,8 @@ export class ProjelerController {
         return this.projeService.update(req.user.userId, data);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('uzman-update')
     async uzmanUpdate(@Body() data: { itemValue: number[], TeknokentID: number, ProjeUzmanKullaniciID: number }, @Request() req) {
         if (!req.user.userId) {
@@ -201,7 +213,8 @@ export class ProjelerController {
 
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(2)
     @Post('hakem-update')
     async hakemUpdate(@Body() data: { itemValue: number[], TeknokentID: number, ProjeHakemKullaniciID: number }, @Request() req) {
         if (!req.user.userId) {
@@ -218,7 +231,7 @@ export class ProjelerController {
         if (user.KullaniciTipi === 1) {
             throw new BadRequestException(`Yetkisiz kullanıcı`);
         }
-        if (user.KullaniciTipi === 2 ) {
+        if (user.KullaniciTipi === 2) {
             return this.projeService.hakemUpdate(req.user.userId, data);
         } else {
             throw new ForbiddenException('Kullanıcı yetkisi yok')

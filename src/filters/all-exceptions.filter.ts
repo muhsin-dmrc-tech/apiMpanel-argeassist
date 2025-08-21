@@ -41,7 +41,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const userId = this.getUserId(request);
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    let firmaId = 0;
     let errorType = 'UnknownError';
     let logType = 'system'; // Varsayılan olarak system log
     let logLevel = 'error'; // Varsayılan olarak error
@@ -50,7 +49,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse() as any;
       message = exceptionResponse.message || exception.message;
-      firmaId = exceptionResponse.FirmaID || 0;
       errorType = exception.name;
 
       // **Hata Türüne Göre logType ve logLevel Ayarı**
@@ -102,7 +100,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       message: message,
-      FirmaID: firmaId
+      KullaniciID: userId
     });
   }
 }

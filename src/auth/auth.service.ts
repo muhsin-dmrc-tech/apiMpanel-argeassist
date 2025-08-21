@@ -22,6 +22,7 @@ import { SmsService } from 'src/sms/sms.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { KullaniciCihazlari } from 'src/kullanicilar/entities/kullanici-cihazlari.entity';
+import { FirmaAbonelikleri } from 'src/firma-abonelikleri/entities/firma-abonelikleri.entity';
 //import { LogsService } from 'src/logs-tables/logs.service';
 
 
@@ -435,80 +436,20 @@ export class AuthService {
         throw new BadRequestException('Kullanıcı bulunamadı');
       }
 
-     /*  const queryBuilder = this.dataSource
-        .getRepository(KullaniciDavetleri)
-        .createQueryBuilder('davet')
-        .where('davet.Durum IS NULL')
-        .andWhere('davet.Email = :email', { email: user.Email })
-        .andWhere('davet.Tip = :Tip', { Tip: user.KullaniciTipi === 3 ? 3 : 1 })
-        .leftJoin('davet.DavetciKullanici', 'davetci')
-
-
-      const select = [
-        'davet.id',
-        'davet.GrupID',
-        'davet.PersonelID',
-        'davet.IliskiID',
-        'davet.Durum',
-        'davetci.AdSoyad'
-      ];
-
-      if (user.KullaniciTipi === 3) {
-        queryBuilder.leftJoinAndMapOne(
-          'davet.Teknokent',
-          Teknokentler,
-          'Teknokent',
-          'Teknokent.TeknokentID = davet.IliskiID'
-        );
-        queryBuilder.andWhere('Teknokent.IsDeleted != :IsDeleted', { IsDeleted: true });
-
-        select.push('Teknokent.TeknokentAdi');
-      } else {
-        queryBuilder.leftJoinAndMapOne(
-          'davet.Firma',
-          Firma,
-          'Firma',
-          'Firma.FirmaID = davet.IliskiID'
-        );
-        queryBuilder.andWhere('Firma.IsDeleted != :IsDeleted', { IsDeleted: true });
-
-        select.push('Firma.FirmaAdi');
-      }
-
-      queryBuilder.select(select);
-
-      const davetler = await queryBuilder.getMany(); */
-
-
-      /* const teknodavetler = await this.dataSource
-        .getRepository(TeknoKullaniciDavetleri)
-        .createQueryBuilder('davet')
-        .where('davet.Durum IS NULL')
-        .andWhere('davet.Email = :email', { email: user.Email })
-        .leftJoin('davet.Teknokent', 'teknokent')
-        .leftJoin('davet.DavetciKullanici', 'davetci')
-        .select([
-          'davet.id',
-          'davet.GrupID',
-          'davet.TeknokentID',
-          'davet.Durum',
-          'teknokent.TeknokentAdi', // Teknokent tablosundan sadece TeknokentAdi
-          'davetci.AdSoyad', // DavetciKullanici tablosundan sadece AdSoyad
-        ])
-        .getMany(); */
-
+      const Abonelik = await this.dataSource.getRepository(FirmaAbonelikleri).createQueryBuilder('abonelik')
+        .where('abonelik.KullaniciID = :KullaniciID', { KullaniciID: user.id })
+        .andWhere('abonelik.Durum = :Durum', { Durum: 'Aktif' })
+        .leftJoinAndSelect('abonelik.AbonelikPlan', 'abonelikPlan')
+        .getOne();
+    
 
       // Şifreyi çıkar
       let { Sifre, ...result } = user;
 
       // Tipi genişletmek için TypeScript'e bilgi veriyoruz
-     /*  if (davetler.length > 0) {
-        return { ...result, davetler } as typeof result & { davetler: KullaniciDavetleri[] };
-      } */
-      // Tipi genişletmek için TypeScript'e bilgi veriyoruz
-      /*  if (teknodavetler.length > 0) {
-         return { ...result, teknodavetler } as typeof result & { teknodavetler: TeknoKullaniciDavetleri[] };
-       } */
+      if (Abonelik && Abonelik.AbonelikPlan) {
+        return { ...result, Abonelik:Abonelik.AbonelikPlan.PlanAdi } as typeof result & { Abonelik: string };
+      }
 
       return result;
     } catch (error) {

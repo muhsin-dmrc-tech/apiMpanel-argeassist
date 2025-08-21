@@ -16,7 +16,6 @@ export class AbonelikPlanlariService {
 
 
     async getActivePlanlar() {
-        // Tüm dilleri getir
         const abonelikPlanlari = await this.dataSource
             .getRepository(AbonelikPlanlari)
             .find({ where: { Aktifmi: true } });

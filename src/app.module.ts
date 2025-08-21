@@ -37,6 +37,12 @@ import { SureclerModule } from './surecler/surecler.module';
 import { PdfAnalizModule } from './pdf-analiz/pdf-analiz.module';
 import { DokumanlarModule } from './dokumanlar/dokumanlar.module';
 import { BordroHesaplamaModule } from './bordro-hesaplama/bordro-hesaplama.module';
+import { AbonelikPlanlariModule } from './abonelik-planlari/abonelik-planlari.module';
+import { SiparislerModule } from './siparisler/siparisler.module';
+import { FirmaAbonelikleriModule } from './firma-abonelikleri/firma-abonelikleri.module';
+import { FaturalarModule } from './faturalar/faturalar.module';
+import { FaturaBilgileriModule } from './fatura-bilgileri/fatura-bilgileri.module';
+import { OdemelerModule } from './odemeler/odemeler.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -55,7 +61,6 @@ import { BordroHesaplamaModule } from './bordro-hesaplama/bordro-hesaplama.modul
     AuthModule,
     LoginKayitlariModule,
     LogsModule,
-    //FirmalarModule,
     DonemModule,
     //PersonelModule,
     IzinTuruModule,
@@ -71,23 +76,22 @@ import { BordroHesaplamaModule } from './bordro-hesaplama/bordro-hesaplama.modul
     //DisaridaGecirilenFormModule,
     CalismaTuruModule,
     GorevlendirmeTuruModule,
-   //KullaniciDavetleriModule,
    // ProjeIlerlemeBilgilerModule,
    // FirmaMuafiyetBilgilerModule,
     MuafiyetTipleriModule,
     //ProjeGelirBilgileriModule,
     BildirimlerModule,
     KullaniciBildirimleriModule,
-    //FirmaAbonelikleriModule,
-    //AbonelikPlanlariModule,
-   // FaturalarModule,
-    //OdemelerModule,
-    //FaturaBilgileriModule,
+    FirmaAbonelikleriModule,
+    AbonelikPlanlariModule,
+    FaturalarModule,
+    OdemelerModule,
+    FaturaBilgileriModule,
    // ProjeGiderBilgileriModule,
     GiderTipleriModule,
    // ProjeDisiGiderBilgileriModule,
     //ProjeDisiGelirBilgileriModule,
-    //SiparislerModule,
+    SiparislerModule,
     SozlesmelerModule,
    // ProjeDisiDisTicaretBilgileriModule,
     //SgkhizmetListesiModule,
