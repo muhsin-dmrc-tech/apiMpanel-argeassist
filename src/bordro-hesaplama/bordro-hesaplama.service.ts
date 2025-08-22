@@ -141,8 +141,8 @@ export class BordroHesaplamaService {
         let kumulatifVergiMatrahi = data.BaslangicAyi !== 'Ocak' ? dataKumulatifGelirVergiMatrahi : 0;
         let oncekiKumulatifVergi = data.BaslangicAyi !== 'Ocak' ? dataGelirVergiMatrahi : 0;
         let oncekiAsgariVergi = data.BaslangicAyi !== 'Ocak' ? dataAsgariGelirVergiMatrahi : 0;
-        let asgariUcretKumuleIstisnaMatrahi = data.BaslangicAyi !== 'Ocak' ? dataAsgUcretKumIstisnaMatrahi : 0;
-        let duzenlenenSgkPrimIsverenOrani = Math.round((seciliYil.SGKPrimiIsveren - (data.BesPuanlikIndirimUygula ? 0.05 : data.DortPuanlikIndirimUygula ? 0.04 : 0)) * 1000) / 1000;
+        let asgariUcretKumuleIstisnaMatrahi = data.BaslangicAyi !== 'Ocak' ? dataAsgUcretKumIstisnaMatrahi : 0; 
+        let duzenlenenSgkPrimIsverenOrani = seciliYil.SGKPrimiIsveren - (data.BesPuanlikIndirimUygula ? 0.05 : data.DortPuanlikIndirimUygula ? 0.04 : 0);
 
         const tumAylar = [
             'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -180,7 +180,7 @@ export class BordroHesaplamaService {
             oncekiAsgariVergi += aylikAsgariUcretGelirVergi;
 
             const SGK5510Tesvigi = Math.max(0, data.SirketOrtagi ? 0 : isverenSgkPrimi - (sgkMatrahi * duzenlenenSgkPrimIsverenOrani));
-            const SGK4691Tesvigi = Math.max(0, (data.KanunSecimi !== '4691' && data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2.0064));
+            const SGK4691Tesvigi = Math.max(0, (data.KanunSecimi !== '4691' || data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2));
             const asgariVergiIstisnasi = data.SirketOrtagi ? 0 : aylikAsgariUcretGelirVergi;
             const asgUcretIstisnaMatrahi = data.SirketOrtagi ? 0 : seciliYil.asgariUcret.netUcret;
             const asgUcretDamgaVergiIstisnasi = data.SirketOrtagi ? 0 : (data.AsgUcretIstisnaUygula ? seciliYil.AsgariUcretinDamgaVergisi : 0);
