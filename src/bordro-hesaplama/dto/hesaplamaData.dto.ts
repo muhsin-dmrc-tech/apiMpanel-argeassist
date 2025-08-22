@@ -26,6 +26,12 @@ export class HesaplamaDataDto {
   KumGelirVergiMatrahi: string;
 
   @IsString()
+  VergiMatrahi: string;
+
+  @IsString()
+  AsgariVergiMatrahi: string;
+
+  @IsString()
   AsgUcretKumIstisnaMatrahi: string;
 
   @IsNumber()
@@ -93,7 +99,7 @@ export interface AylikBordroSonucData {
   SGKIsciPayi: number,
   SGKIsverenPayi: number,
   SGK5510Tesvigi: number,
-  SGK4691Tesvigi:number,
+  SGK4691Tesvigi: number,
   SGKTesvigi: number,
   KalanSGKIsverenPrimi: number,
   IssizlikIsciPrimi: number,

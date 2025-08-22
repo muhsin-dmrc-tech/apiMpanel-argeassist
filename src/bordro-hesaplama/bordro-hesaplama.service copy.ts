@@ -179,11 +179,10 @@ export class BordroHesaplamaService {
             const aylikAsgariUcretGelirVergi = toplamAsgariUcretGelirVergisi - oncekiAsgariVergi;
             oncekiAsgariVergi += aylikAsgariUcretGelirVergi;
 
-            const SGK5510Tesvigi = Math.max(0, data.SirketOrtagi ? 0 : isverenSgkPrimi - (sgkMatrahi * duzenlenenSgkPrimIsverenOrani));
-            const SGK4691Tesvigi = Math.max(0, (data.KanunSecimi !== '4691' && data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2.0064));
-            const asgariVergiIstisnasi = data.SirketOrtagi ? 0 : aylikAsgariUcretGelirVergi;
-            const asgUcretIstisnaMatrahi = data.SirketOrtagi ? 0 : seciliYil.asgariUcret.netUcret;
-            const asgUcretDamgaVergiIstisnasi = data.SirketOrtagi ? 0 : (data.AsgUcretIstisnaUygula ? seciliYil.AsgariUcretinDamgaVergisi : 0);
+            const SGK5510Tesvigi = data.SirketOrtagi ? 0 : isverenSgkPrimi - (sgkMatrahi * duzenlenenSgkPrimIsverenOrani);
+            const SGK4691Tesvigi = (data.KanunSecimi !== '4691' && data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2);
+
+
 
             let kalanSGKIsverenPrimi = isverenSgkPrimi;
             let gelirVergisi = aylikGelirVergi;
@@ -202,11 +201,11 @@ export class BordroHesaplamaService {
                 const toplamOran = argeOrani * egitimOrani;
 
                 // Gelir vergisi teşviki (oran kadar indirim)
-                gelirVergisiTesviki = (gelirVergisi * toplamOran) - asgariVergiIstisnasi;
+                gelirVergisiTesviki = gelirVergisi * toplamOran;
                 gelirVergisi = gelirVergisi - gelirVergisiTesviki;
 
                 // Damga vergisi teşviki (tamamı)
-                damgaVergisiTesviki = damgaVergisi-asgUcretDamgaVergiIstisnasi;
+                damgaVergisiTesviki = damgaVergisi;
                 damgaVergisi = 0;
 
                 duzenlenenSgkPrimIsverenOrani = 0.075;
@@ -218,8 +217,8 @@ export class BordroHesaplamaService {
                 const toplamOran = teknokentOrani;
 
 
-                gelirVergisiTesviki = (gelirVergisi * toplamOran) - asgariVergiIstisnasi;
-                damgaVergisiTesviki = damgaVergisi - asgUcretDamgaVergiIstisnasi;
+                gelirVergisiTesviki = gelirVergisi * toplamOran;
+                damgaVergisiTesviki = damgaVergisi;
                 SGKTesvigi = SGK4691Tesvigi + SGK5510Tesvigi;
                 kalanSGKIsverenPrimi = Math.max(0, kalanSGKIsverenPrimi - SGKTesvigi);
 
@@ -228,13 +227,13 @@ export class BordroHesaplamaService {
             } else if (data.BesPuanlikIndirimUygula || data.DortPuanlikIndirimUygula) {
                 SGKTesvigi = data.SSKTesvigiUygula ? SGK5510Tesvigi : 0;
             }
-            
+
+            const asgUcretIstisnaMatrahi = data.SirketOrtagi ? 0 : seciliYil.asgariUcret.netUcret;
+            const asgUcretDamgaVergiIstisnasi = data.SirketOrtagi ? 0 : (data.AsgUcretIstisnaUygula ? seciliYil.AsgariUcretinDamgaVergisi : 0);
             const odenecekSGKPrimi = isciSgkPrimi + isciIssizlikSigortaPrimi + kalanSGKIsverenPrimi + isverenIssizlikSigortaPrimi;
 
 
-
-
-
+            const asgariVergiIstisnasi = data.SirketOrtagi ? 0 : aylikAsgariUcretGelirVergi;
 
 
 
@@ -245,23 +244,14 @@ export class BordroHesaplamaService {
 
             const besOrani = Math.max(3, data.BesYuzdesi ?? 3) / 100; // minimum %3
             const besKesintisi = data.BESKesintisiUygula ? brutUcret * besOrani : 0;
-            const netTesviksizMaas = brutUcret
-                - isciSgkPrimi
-                - isciIssizlikSigortaPrimi
-                - aylikGelirVergi
-                - hesaplananDamgaVergisi
-                - besKesintisi
-                + asgariVergiIstisnasi
-                + asgUcretDamgaVergiIstisnasi+damgaVergisiTesviki;
-
-            const netOdenen = brutUcret
+            const netMaas = brutUcret
                 - isciSgkPrimi
                 - isciIssizlikSigortaPrimi
                 - uygulanacakGelirVergisi
                 - uygulanacakDamgaVergisi
                 - besKesintisi;
 
-            const toplamMaliyet = brutUcret - SGKTesvigi - gelirVergisiTesviki + isverenIssizlikSigortaPrimi + isverenSgkPrimi;
+            const toplamMaliyet = (brutUcret + isverenSgkPrimi + isverenIssizlikSigortaPrimi + sgdpIsverenDestekPrimi) - SGKTesvigi;
 
             sonuclar.push({
                 Ay: ay,
@@ -294,8 +284,8 @@ export class BordroHesaplamaService {
                 AsgUcretDamgaVergiIstisnasi: Math.round(asgUcretDamgaVergiIstisnasi * 100) / 100,
                 DamgaVergisiTesvigi: Math.round(damgaVergisiTesviki * 100) / 100,
                 OdenecekDamgaVergisi: Math.round(uygulanacakDamgaVergisi * 100) / 100,
-                NetMaasAGIHaric: Math.round(netOdenen * 100) / 100,
-                NetOdenen: Math.round(netTesviksizMaas * 100) / 100,
+                NetMaasAGIHaric: Math.round(netMaas * 100) / 100,
+                NetOdenen: Math.round(netMaas * 100) / 100,
                 ToplamMaliyet: Math.round(toplamMaliyet * 100) / 100,
                 ToplamTesvik: Math.round((gelirVergisiTesviki + damgaVergisiTesviki + SGKTesvigi) * 100) / 100
             })
