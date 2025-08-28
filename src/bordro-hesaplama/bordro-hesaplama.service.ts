@@ -70,22 +70,31 @@ export class BordroHesaplamaService {
 
     private bruttenNeteHesapla(data: HesaplamaDataDto, seciliYil: any) {
         let GirilenDeger = data.GirilenDeger.replace(/\s/g, '');
-        const gunlukUcret = data.UcretTuru === 'aylik'
-            ? this.stringToRenderNumber(GirilenDeger) / 30   // aylık brüt → günlük brüt
-            : this.stringToRenderNumber(GirilenDeger);
+        const aylikBrutUcret = data.UcretTuru === 'aylik'
+            ? this.stringToRenderNumber(GirilenDeger)   // doğrudan aylık brüt
+            : this.stringToRenderNumber(GirilenDeger) * 30; // günlük girildiyse 30 ile çarp
+
+        const gunlukUcret = aylikBrutUcret / 30;
         const brutUcret = gunlukUcret * data.BordroGunSayisi;
+
 
         let gelenKumulatifGelirVergiMatrahi = data.KumGelirVergiMatrahi.replace(/\s/g, '');
         const dataKumulatifGelirVergiMatrahi = this.stringToRenderNumber(gelenKumulatifGelirVergiMatrahi);
-
-        let gelenGelirVergiMatrahi = data.VergiMatrahi.replace(/\s/g, '');
-        const dataGelirVergiMatrahi = this.stringToRenderNumber(gelenGelirVergiMatrahi);
-
         let gelenAsgUcretKumIstisnaMatrahi = data.AsgUcretKumIstisnaMatrahi.replace(/\s/g, '');
         const dataAsgUcretKumIstisnaMatrahi = this.stringToRenderNumber(gelenAsgUcretKumIstisnaMatrahi);
 
-        let gelenAsgariGelirVergiMatrahi = data.AsgariVergiMatrahi.replace(/\s/g, '');
-        const dataAsgariGelirVergiMatrahi = this.stringToRenderNumber(gelenAsgariGelirVergiMatrahi);
+        const gelenGelirVergisi = this.gelirVergisiHesapla(
+            dataKumulatifGelirVergiMatrahi,
+            seciliYil.GelirVergiDilimiOranlari
+        );
+        const gelenAsgariUcretGelirVergisi = this.gelirVergisiHesapla(
+            dataAsgUcretKumIstisnaMatrahi,
+            seciliYil.GelirVergiDilimiOranlari
+        );
+
+        const dataGelirVergiMatrahi = Math.round(gelenGelirVergisi * 100) / 100;
+
+        const dataAsgariGelirVergiMatrahi = Math.round(gelenAsgariUcretGelirVergisi * 100) / 100;
 
         // SGK Matrahı
         let sgkMatrahi = brutUcret;
@@ -102,14 +111,14 @@ export class BordroHesaplamaService {
 
         // SGK Primleri
         if (data.SSKGrup === "tum-sigorta-kollarina-tabi") {
-            isciSgkPrimi = sgkMatrahi * seciliYil.SGKPrimiIsci;
-            isciIssizlikSigortaPrimi = sgkMatrahi * seciliYil.IssizlikSigortaIsci;
-            isverenSgkPrimi = sgkMatrahi * seciliYil.SGKPrimiIsveren;
-            isverenIssizlikSigortaPrimi = sgkMatrahi * seciliYil.IssizlikSigortaIsveren;
+            isciSgkPrimi = data.SirketOrtagi ? 0 : sgkMatrahi * seciliYil.SGKPrimiIsci;
+            isciIssizlikSigortaPrimi = data.SirketOrtagi ? 0 : sgkMatrahi * seciliYil.IssizlikSigortaIsci;
+            isverenSgkPrimi = data.SirketOrtagi ? 0 : sgkMatrahi * seciliYil.SGKPrimiIsveren;
+            isverenIssizlikSigortaPrimi = data.SirketOrtagi ? 0 : sgkMatrahi * seciliYil.IssizlikSigortaIsveren;
         }
         else if (data.SSKGrup === "s-g-destek-primine-tabi" || data.SSKGrup === "s-g-destek-primine-tabi-eytli") {
             // Emekli çalışanda sadece işveren destek primi var
-            sgdpIsverenDestekPrimi = sgkMatrahi * seciliYil.SGDPIsverenOrani;
+            sgdpIsverenDestekPrimi = data.SirketOrtagi ? 0 : sgkMatrahi * seciliYil.SGDPIsverenOrani;
         }
 
         // Engelli indirimi tablosu
@@ -128,20 +137,20 @@ export class BordroHesaplamaService {
         let asgariSgkIsci = asgariBrut * seciliYil.SGKPrimiIsci;
         let asgariIssizlikIsci = asgariBrut * seciliYil.IssizlikSigortaIsci;
 
-        let asgariVergiMatrahi = asgariBrut - (asgariSgkIsci + asgariIssizlikIsci);
+        let asgariVergiMatrahi = asgariBrut - (asgariSgkIsci + asgariIssizlikIsci) - engelliIndirimiTutari;
 
 
         let vergiMatrahi = brutUcret - (isciSgkPrimi + isciIssizlikSigortaPrimi);
         vergiMatrahi = Math.max(0, vergiMatrahi - engelliIndirimiTutari);
         const hesaplananDamgaVergisi = brutUcret * seciliYil.DamgaVergisiIsci;
 
-        const argeOrani = Math.max(0, Math.min(1, data.ArgeGunSayisi / data.BordroGunSayisi));
-        const teknokentOrani = Math.max(0, Math.min(1, data.TeknoparkGunSayisi / data.BordroGunSayisi));
+        const argeOrani = data.ArgeGunSayisi > data.BordroGunSayisi ? 1 : Math.max(0, Math.min(1, data.ArgeGunSayisi / data.BordroGunSayisi));
+        const teknokentOrani = data.TeknoparkGunSayisi > data.BordroGunSayisi ? 1 : Math.max(0, Math.min(1, data.TeknoparkGunSayisi / data.BordroGunSayisi));
         const sonuclar: AylikBordroSonucData[] = [];
         let kumulatifVergiMatrahi = data.BaslangicAyi !== 'Ocak' ? dataKumulatifGelirVergiMatrahi : 0;
         let oncekiKumulatifVergi = data.BaslangicAyi !== 'Ocak' ? dataGelirVergiMatrahi : 0;
         let oncekiAsgariVergi = data.BaslangicAyi !== 'Ocak' ? dataAsgariGelirVergiMatrahi : 0;
-        let asgariUcretKumuleIstisnaMatrahi = data.BaslangicAyi !== 'Ocak' ? dataAsgUcretKumIstisnaMatrahi : 0; 
+        let asgariUcretKumuleIstisnaMatrahi = data.BaslangicAyi !== 'Ocak' ? dataAsgUcretKumIstisnaMatrahi : 0;
         let duzenlenenSgkPrimIsverenOrani = seciliYil.SGKPrimiIsveren - (data.BesPuanlikIndirimUygula ? 0.05 : data.DortPuanlikIndirimUygula ? 0.04 : 0);
 
         const tumAylar = [
@@ -169,6 +178,7 @@ export class BordroHesaplamaService {
                 seciliYil.GelirVergiDilimiOranlari
             );
 
+
             const toplamAsgariUcretGelirVergisi = this.gelirVergisiHesapla(
                 asgariUcretKumuleIstisnaMatrahi,
                 seciliYil.GelirVergiDilimiOranlari
@@ -180,10 +190,10 @@ export class BordroHesaplamaService {
             oncekiAsgariVergi += aylikAsgariUcretGelirVergi;
 
             const SGK5510Tesvigi = Math.max(0, data.SirketOrtagi ? 0 : isverenSgkPrimi - (sgkMatrahi * duzenlenenSgkPrimIsverenOrani));
-            const SGK4691Tesvigi = Math.max(0, (data.KanunSecimi !== '4691' || data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2));
-            const asgariVergiIstisnasi = data.SirketOrtagi ? 0 : aylikAsgariUcretGelirVergi;
-            const asgUcretIstisnaMatrahi = data.SirketOrtagi ? 0 : seciliYil.asgariUcret.netUcret;
-            const asgUcretDamgaVergiIstisnasi = data.SirketOrtagi ? 0 : (data.AsgUcretIstisnaUygula ? seciliYil.AsgariUcretinDamgaVergisi : 0);
+            const SGK4691Tesvigi = Math.max(0, (data.KanunSecimi === 'standart' || data.SirketOrtagi) ? 0 : sgkMatrahi * (duzenlenenSgkPrimIsverenOrani / 2));
+            const asgariVergiIstisnasi = aylikAsgariUcretGelirVergi;
+            const asgUcretIstisnaMatrahi = seciliYil.asgariUcret.netUcret;
+            const asgUcretDamgaVergiIstisnasi = data.AsgUcretIstisnaUygula ? seciliYil.AsgariUcretinDamgaVergisi : 0;
 
             let kalanSGKIsverenPrimi = isverenSgkPrimi;
             let gelirVergisi = aylikGelirVergi;
@@ -193,33 +203,33 @@ export class BordroHesaplamaService {
             let damgaVergisiTesviki = 0;
             let SGKTesvigi = 0;
 
-            if (data.KanunSecimi === '5746' && !data.SirketOrtagi) {
+            if (data.KanunSecimi === '5746') {
                 // Eğitim durumuna göre teşvik oranı
                 let egitimOrani = 0.80;
                 if (data.EgitimDurumu === 'doktora') egitimOrani = 0.95;
                 else if (data.EgitimDurumu === 'yuksek-lisans') egitimOrani = 0.90;
 
-                const toplamOran = argeOrani * egitimOrani;
+                const toplamOran = (argeOrani * egitimOrani);
 
                 // Gelir vergisi teşviki (oran kadar indirim)
-                gelirVergisiTesviki = (gelirVergisi * toplamOran) - asgariVergiIstisnasi;
+                gelirVergisiTesviki = Math.round(((gelirVergisi * toplamOran) - asgariVergiIstisnasi) * 100) / 100;
                 gelirVergisi = gelirVergisi - gelirVergisiTesviki;
 
                 // Damga vergisi teşviki (tamamı)
-                damgaVergisiTesviki = damgaVergisi-asgUcretDamgaVergiIstisnasi;
+                damgaVergisiTesviki = damgaVergisi - asgUcretDamgaVergiIstisnasi;
                 damgaVergisi = 0;
 
                 duzenlenenSgkPrimIsverenOrani = 0.075;
                 // SGK işveren primi indirimi
-                SGKTesvigi = SGK5510Tesvigi;
+                SGKTesvigi = SGK4691Tesvigi + SGK5510Tesvigi;
                 kalanSGKIsverenPrimi = Math.max(0, kalanSGKIsverenPrimi - SGKTesvigi);
-            } else if (data.KanunSecimi === '4691' && !data.SirketOrtagi) {
+            } else if (data.KanunSecimi === '4691') {
                 // Teknokent personeli için tam teşvik
                 const toplamOran = teknokentOrani;
 
 
                 gelirVergisiTesviki = (gelirVergisi * toplamOran) - asgariVergiIstisnasi;
-                damgaVergisiTesviki = damgaVergisi - asgUcretDamgaVergiIstisnasi;
+                damgaVergisiTesviki = hesaplananDamgaVergisi - asgUcretDamgaVergiIstisnasi;
                 SGKTesvigi = SGK4691Tesvigi + SGK5510Tesvigi;
                 kalanSGKIsverenPrimi = Math.max(0, kalanSGKIsverenPrimi - SGKTesvigi);
 
@@ -227,41 +237,36 @@ export class BordroHesaplamaService {
                 damgaVergisi = 0;
             } else if (data.BesPuanlikIndirimUygula || data.DortPuanlikIndirimUygula) {
                 SGKTesvigi = data.SSKTesvigiUygula ? SGK5510Tesvigi : 0;
+                kalanSGKIsverenPrimi = Math.max(0, kalanSGKIsverenPrimi - SGKTesvigi);
             }
-            
-            const odenecekSGKPrimi = isciSgkPrimi + isciIssizlikSigortaPrimi + kalanSGKIsverenPrimi + isverenIssizlikSigortaPrimi;
+
+            const odenecekSGKPrimi = isciSgkPrimi + isciIssizlikSigortaPrimi + kalanSGKIsverenPrimi + isverenIssizlikSigortaPrimi - sgdpIsverenDestekPrimi;
 
 
-
-
-
-
-
-
-            // Net maaş hesaplamasında asgari ücret istisnaları uygulanmalı
             const uygulanacakGelirVergisi = Math.max(0, gelirVergisi - asgariVergiIstisnasi);
             const uygulanacakDamgaVergisi = Math.max(0, damgaVergisi - asgUcretDamgaVergiIstisnasi);
 
 
             const besOrani = Math.max(3, data.BesYuzdesi ?? 3) / 100; // minimum %3
             const besKesintisi = data.BESKesintisiUygula ? brutUcret * besOrani : 0;
-            const netTesviksizMaas = brutUcret
+            const netOdenen = brutUcret
                 - isciSgkPrimi
                 - isciIssizlikSigortaPrimi
                 - aylikGelirVergi
                 - hesaplananDamgaVergisi
                 - besKesintisi
                 + asgariVergiIstisnasi
-                + asgUcretDamgaVergiIstisnasi+damgaVergisiTesviki;
+                + asgUcretDamgaVergiIstisnasi
+                + damgaVergisiTesviki;
 
-            const netOdenen = brutUcret
+            const netTesviksizMaas = brutUcret
                 - isciSgkPrimi
                 - isciIssizlikSigortaPrimi
                 - uygulanacakGelirVergisi
                 - uygulanacakDamgaVergisi
                 - besKesintisi;
 
-            const toplamMaliyet = brutUcret - SGKTesvigi - gelirVergisiTesviki + isverenIssizlikSigortaPrimi + isverenSgkPrimi;
+            const toplamMaliyet = brutUcret + isverenIssizlikSigortaPrimi + isverenSgkPrimi - SGKTesvigi - gelirVergisiTesviki;
 
             sonuclar.push({
                 Ay: ay,
@@ -271,7 +276,7 @@ export class BordroHesaplamaService {
                 KanunNo: data.KanunSecimi,
                 BESOrani: data.BESKesintisiUygula ? besOrani : 0,
                 BESKEsintisi: Math.round(besKesintisi * 100) / 100,
-                AylikBrutUcret: Math.round(brutUcret * 100) / 100,
+                AylikBrutUcret: Math.round(aylikBrutUcret * 100) / 100,
                 BrutUcret: Math.round(brutUcret * 100) / 100,
                 SGKMatrahi: Math.round(sgkMatrahi * 100) / 100,
                 SGKIsciPayi: Math.round(isciSgkPrimi * 100) / 100,
@@ -294,10 +299,10 @@ export class BordroHesaplamaService {
                 AsgUcretDamgaVergiIstisnasi: Math.round(asgUcretDamgaVergiIstisnasi * 100) / 100,
                 DamgaVergisiTesvigi: Math.round(damgaVergisiTesviki * 100) / 100,
                 OdenecekDamgaVergisi: Math.round(uygulanacakDamgaVergisi * 100) / 100,
-                NetMaasAGIHaric: Math.round(netOdenen * 100) / 100,
-                NetOdenen: Math.round(netTesviksizMaas * 100) / 100,
+                NetTesviksizMaas: Math.round(netTesviksizMaas * 100) / 100,
+                NetOdenen: Math.round(netOdenen * 100) / 100,
                 ToplamMaliyet: Math.round(toplamMaliyet * 100) / 100,
-                ToplamTesvik: Math.round((gelirVergisiTesviki + damgaVergisiTesviki + SGKTesvigi) * 100) / 100
+                ToplamTesvik: Math.round((gelirVergisiTesviki + damgaVergisiTesviki + SGK4691Tesvigi) * 100) / 100
             })
         }
         return sonuclar
@@ -329,7 +334,7 @@ export class BordroHesaplamaService {
     }
 
 
-    private nettenBruteHesapla(data: HesaplamaDataDto, seciliYil: any) {
+    /* private nettenBruteHesapla(data: HesaplamaDataDto, seciliYil: any) {
         const GirilenDeger = data.GirilenDeger.replace(/\s/g, '');
         const hedeflenenNetMaas = this.stringToRenderNumber(GirilenDeger);
 
@@ -367,8 +372,6 @@ export class BordroHesaplamaService {
         const hassasiyet = 0.5; // Daha gevşek hassasiyet
         let enIyiBrut = 0;
         let enIyiFark = Number.POSITIVE_INFINITY;
-        let enIyiSonuc = null;
-
         let sonBrut = 0;
         let sonNet = 0;
         let sonSonuc = null;
@@ -390,7 +393,6 @@ export class BordroHesaplamaService {
                 if (Math.abs(fark) < Math.abs(enIyiFark)) {
                     enIyiBrut = ortaBrut;
                     enIyiFark = fark;
-                    enIyiSonuc = hesaplama;
                 }
 
                 // Son sonucu kaydet
@@ -416,7 +418,6 @@ export class BordroHesaplamaService {
 
             iterasyon++;
         }
-
         // Son sonucu hassasiyetle düzelt
         if (sonSonuc && Math.abs(sonNet - hedeflenenNetMaas) <= 10.0) {
             let hassasBrut = sonBrut;
@@ -442,12 +443,130 @@ export class BordroHesaplamaService {
                 }
                 return hassasSonuc;
             } else if (hassasNet < hedeflenenNetMaas) {
+                let oncekiSonuc = hassasSonuc;
+                while (true) {
+                    oncekiSonuc = hassasSonuc;
+                    hassasBrut += 0.01;
+                    const hassasTestData = { ...data, GirilenDeger: hassasBrut.toFixed(2).toString() };
+                    const hassasHesaplama = this.bruttenNeteHesapla(hassasTestData, seciliYil);
+                    if (!hassasHesaplama || hassasHesaplama.length === 0) break;
+                    const yeniNet = hassasHesaplama[0].NetOdenen;
+                    if (yeniNet > hedeflenenNetMaas) return oncekiSonuc;
+                    hassasNet = yeniNet;
+                    hassasSonuc = hassasHesaplama;
+                }
+                return hassasSonuc;
+            }
+            return hassasSonuc;
+        }
+        return [];
+    } */
+
+
+
+    private nettenBruteHesapla(data: HesaplamaDataDto, seciliYil: any) {
+        const GirilenDeger = data.GirilenDeger.replace(/\s/g, '');
+        let hedeflenenNetMaas = this.stringToRenderNumber(GirilenDeger);
+
+        // ✅ Bordro gün sayısına göre normalize et
+        if (data.UcretTuru === 'aylik') {
+            hedeflenenNetMaas = (hedeflenenNetMaas / 30) * data.BordroGunSayisi;
+        } else if (data.UcretTuru === 'gunluk') {
+            hedeflenenNetMaas = hedeflenenNetMaas * data.BordroGunSayisi;
+        }
+
+        // Daha geniş başlangıç aralığı
+        let altSinir = hedeflenenNetMaas * 0.8;
+        let ustSinir = hedeflenenNetMaas * 3.0;
+
+        // Önce üst sınırın yeterli olduğundan emin olalım
+        let testIterasyon = 0;
+        while (testIterasyon < 10) {
+            try {
+                const testData = { ...data, GirilenDeger: ustSinir.toString() };
+                const testHesaplama = this.bruttenNeteHesapla(testData, seciliYil);
+
+                if (testHesaplama && testHesaplama.length > 0) {
+                    const testNet = testHesaplama[0].NetOdenen;
+                    if (testNet >= hedeflenenNetMaas) break;
+                }
+                ustSinir *= 1.5;
+                testIterasyon++;
+            } catch (error) {
+                ustSinir *= 1.5;
+                testIterasyon++;
+            }
+        }
+
+        // Binary search
+        let iterasyon = 0;
+        const maxIterasyon = 100;
+        const hassasiyet = 0.5;
+        let enIyiBrut = 0;
+        let enIyiFark = Number.POSITIVE_INFINITY;
+        let sonBrut = 0;
+        let sonNet = 0;
+        let sonSonuc = null;
+
+        while (iterasyon < maxIterasyon && (ustSinir - altSinir) > hassasiyet) {
+            const ortaBrut = (altSinir + ustSinir) / 2;
+            try {
+                const testData = { ...data, GirilenDeger: ortaBrut.toFixed(2).toString() };
+                const hesaplama = this.bruttenNeteHesapla(testData, seciliYil);
+                if (!hesaplama || hesaplama.length === 0) break;
+
+                const hesaplananNet = hesaplama[0].NetOdenen;
+                const fark = hesaplananNet - hedeflenenNetMaas;
+
+                if (Math.abs(fark) < Math.abs(enIyiFark)) {
+                    enIyiBrut = ortaBrut;
+                    enIyiFark = fark;
+                }
+
+                sonBrut = ortaBrut;
+                sonNet = hesaplananNet;
+                sonSonuc = hesaplama;
+
+                if (Math.abs(fark) == 0) return hesaplama;
+
+                if (fark > 0) {
+                    ustSinir = ortaBrut;
+                } else {
+                    altSinir = ortaBrut;
+                }
+            } catch (error) {
+                break;
+            }
+            iterasyon++;
+        }
+
+        // Hassas düzeltme
+        if (sonSonuc && Math.abs(sonNet - hedeflenenNetMaas) <= 10.0) {
+            let hassasBrut = sonBrut;
+            let hassasNet = sonNet;
+            let hassasSonuc = sonSonuc;
+
+            if (hassasNet > hedeflenenNetMaas) {
                 let oncekiBrut = hassasBrut;
                 let oncekiNet = hassasNet;
                 let oncekiSonuc = hassasSonuc;
                 while (true) {
                     oncekiBrut = hassasBrut;
                     oncekiNet = hassasNet;
+                    oncekiSonuc = hassasSonuc;
+                    hassasBrut -= 0.01;
+                    const hassasTestData = { ...data, GirilenDeger: hassasBrut.toFixed(2).toString() };
+                    const hassasHesaplama = this.bruttenNeteHesapla(hassasTestData, seciliYil);
+                    if (!hassasHesaplama || hassasHesaplama.length === 0) break;
+                    const yeniNet = hassasHesaplama[0].NetOdenen;
+                    if (yeniNet < hedeflenenNetMaas) return oncekiSonuc;
+                    hassasNet = yeniNet;
+                    hassasSonuc = hassasHesaplama;
+                }
+                return hassasSonuc;
+            } else if (hassasNet < hedeflenenNetMaas) {
+                let oncekiSonuc = hassasSonuc;
+                while (true) {
                     oncekiSonuc = hassasSonuc;
                     hassasBrut += 0.01;
                     const hassasTestData = { ...data, GirilenDeger: hassasBrut.toFixed(2).toString() };
@@ -474,23 +593,17 @@ export class BordroHesaplamaService {
         const baslangicIndex = tumAylar.findIndex(a => a === data.BaslangicAyi);
         const bordroAySayisi = data.KacAylikBordro;
 
-        // Kümülatif başlangıç değerleri
-
-        let vergiMatrahi = data.BaslangicAyi !== 'Ocak'
-            ? this.stringToRenderNumber(data.VergiMatrahi)
-            : 0;
-
-        let asgariVergiMatrahi = data.BaslangicAyi !== 'Ocak'
-            ? this.stringToRenderNumber(data.AsgariVergiMatrahi)
-            : 0;
+        // Kümülatif başlangıç değerleri     
 
         let kumulatifVergiMatrahi = data.BaslangicAyi !== 'Ocak'
-            ? this.stringToRenderNumber(data.KumGelirVergiMatrahi)
+            ? this.stringToRenderNumber(data.KumGelirVergiMatrahi.replace(/\s/g, ''))
             : 0;
 
         let asgariUcretKumIstisnaMatrahi = data.BaslangicAyi !== 'Ocak'
-            ? this.stringToRenderNumber(data.AsgUcretKumIstisnaMatrahi)
+            ? this.stringToRenderNumber(data.AsgUcretKumIstisnaMatrahi.replace(/\s/g, ''))
             : 0;
+
+
 
         const sonuclar: AylikBordroSonucData[] = [];
 
@@ -499,14 +612,13 @@ export class BordroHesaplamaService {
             if (ayIndex >= tumAylar.length) break;
             const ay = tumAylar[ayIndex];
 
+
             // Bu ay için data’yı hazırla
             const ayData: HesaplamaDataDto = {
                 ...data,
                 BaslangicAyi: ay,
                 KacAylikBordro: 1,
                 KumGelirVergiMatrahi: kumulatifVergiMatrahi.toString(),
-                VergiMatrahi: vergiMatrahi.toString(),
-                AsgariVergiMatrahi: asgariVergiMatrahi.toString(),
                 AsgUcretKumIstisnaMatrahi: asgariUcretKumIstisnaMatrahi.toString()
             };
 
@@ -519,8 +631,6 @@ export class BordroHesaplamaService {
 
                 // Yeni kümülatifleri sonraki aya aktar
                 kumulatifVergiMatrahi = sonuc.KumGelirVergisiMatrahi;
-                vergiMatrahi += sonuc.GelirVergisi;
-                asgariVergiMatrahi += sonuc.AsgUcretVergiIstisnasi;
                 asgariUcretKumIstisnaMatrahi = sonuc.AsgUcretKumuleIstisnaMatrahi;
             }
         }

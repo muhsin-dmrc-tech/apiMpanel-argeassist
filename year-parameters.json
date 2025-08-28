@@ -21,8 +21,8 @@
             "GelirVergiDilimiOranlari": [
                 { "Aralik": [0, 158000], "Oran": 15, "Vergi": 23700 },
                 { "Aralik": [158000, 330000], "Oran": 20, "Vergi": 23700 },
-                { "Aralik": [330000, 800000], "Oran": 27, "Vergi": 58100 },
-                { "Aralik": [800000, 4300000], "Oran": 35, "Vergi": 185000 },
+                { "Aralik": [330000, 1200000], "Oran": 27, "Vergi": 58100 },
+                { "Aralik": [1200000, 4300000], "Oran": 35, "Vergi": 185000 },
                 { "Aralik": [4300000, 0], "Oran": 40, "Vergi": 1410000 }
            ],
            "engelliIndirimiTablosu":{

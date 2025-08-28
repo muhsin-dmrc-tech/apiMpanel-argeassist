@@ -25,11 +25,7 @@ export class HesaplamaDataDto {
   @IsString()
   KumGelirVergiMatrahi: string;
 
-  @IsString()
-  VergiMatrahi: string;
-
-  @IsString()
-  AsgariVergiMatrahi: string;
+ 
 
   @IsString()
   AsgUcretKumIstisnaMatrahi: string;
@@ -116,7 +112,7 @@ export interface AylikBordroSonucData {
   AsgUcretDamgaVergiIstisnasi: number,
   DamgaVergisiTesvigi: number,
   OdenecekDamgaVergisi: number,
-  NetMaasAGIHaric: number,
+  NetTesviksizMaas: number,
   NetOdenen: number,
   ToplamMaliyet: number,
   ToplamTesvik: number

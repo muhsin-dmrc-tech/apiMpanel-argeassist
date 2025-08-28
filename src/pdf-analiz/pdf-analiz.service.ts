@@ -53,7 +53,7 @@ export class PdfAnalizService {
                 // Hedef alan
                 const targetArea = {
                     top: headerY + 5,
-                    bottom: totalY - 3,
+                    bottom: totalY - 2,
                     left: 10,
                     right: 100
                 };
@@ -108,7 +108,6 @@ export class PdfAnalizService {
                 };
             });
 
-
             return finalResults;
 
         } catch (error) {
@@ -161,9 +160,78 @@ export class PdfAnalizService {
 
     /// Müşteri Paneli Fonksiyonları -----------------------------------------------------------
 
+    async calismaSureleriMp(texts: string[], seciliDonem: Donem) {
+        const isDogruBelge = texts.some(t =>
+            t.trim().toLocaleLowerCase('tr-TR') === 'dönem çalışma süresi raporu'
+        );
+
+        if (!isDogruBelge) {
+            return { error: `Devam edebilmeniz için bu adımda ${seciliDonem.DonemAdi ? seciliDonem.DonemAdi + ' dönemine' : 'seçilen döneme'} ait 'Dönem Çalışma Süresi Raporu'nu yüklemeniz gerekmektedir.` }
+        }
+
+        let ay = '';
+        let yil = '';
+
+        const donemSatiri = texts.find(t => /^[A-ZÇĞİÖŞÜ]{3,} \d{4} \/ \d/.test(t));
+        if (donemSatiri) {
+            const match = donemSatiri.match(/^([A-ZÇĞİÖŞÜ]+) (\d{4})/);
+            if (match) {
+                ay = match[1].toUpperCase();
+                yil = match[2];
+            }
+        }
+
+        type AylarType = {
+            [key: string]: number;
+        };
+
+        const ayToNumber: AylarType = {
+            'OCAK': 1, 'ŞUBAT': 2, 'MART': 3, 'NİSAN': 4,
+            'MAYIS': 5, 'HAZİRAN': 6, 'TEMMUZ': 7, 'AĞUSTOS': 8,
+            'EYLÜL': 9, 'EKİM': 10, 'KASIM': 11, 'ARALIK': 12
+        };
+
+        const pdfAyNumarasi = ayToNumber[ay as keyof typeof ayToNumber];
+
+        if (pdfAyNumarasi !== seciliDonem.Ay || parseInt(yil) !== seciliDonem.Yil) {
+            return { error: `Yüklediğiniz PDF belgesi ile seçili dönem uyuşmamaktadır. Lütfen ${seciliDonem.DonemAdi ? seciliDonem.DonemAdi + ' dönemine' : 'seçilen döneme'} ait belgeyi yükleyiniz.` }
+        }
+
+        const extractedData: PersonelTableData[] = [];
+        for (let i = 0; i < texts.length - 12; i++) {
+            const tc = texts[i];
+
+            // TC kimlik no yıldızlı şekilde geliyor: örnek "12*******96"
+            if (/^\d{2}\*{2,}\d{2}$/.test(tc) && /^\d{2}-\d{2}-\d{4}$/.test(texts[i + 2])) {
+                const personel = texts[i + 1];
+                const baslangicTarihi = texts[i + 2];
+                const gelirVergiIstisnasi = texts[i + 10]?.replace(",", ".");
+                const sigortaPrimiIsverenHissesi = texts[i + 11]?.replace(",", ".");
+                const nameArray = personel.split(' ');
+                const ad = nameArray.slice(0, -1).join(' ');
+                const soyAd = nameArray[nameArray.length - 1];
 
 
-    async sgkHizmetMp(texts: string[], seciliDonem: Donem): Promise<{ geciciListe: FarklılarListesiData[] } | { error: string }> {
+                extractedData.push({
+                    tcKimlikNo: tc,
+                    ad,
+                    soyAd,
+                    baslangicTarihi,
+                    gelirVergiIstisnasi,
+                    sigortaPrimiIsverenHissesi,
+                });
+
+                i += 11;
+            }
+        }
+        //sistemde olmayan personelleri kaydet
+        /*  if (personelGuncelle) {
+             await this.handlePersonelOperations(extractedData, FirmaID)
+         } */
+        return extractedData;
+    }
+
+    async sgkHizmetMp(texts: string[], seciliDonem: Donem, gunDetayliRaporPersoneller: PersonelTableData[] | null,): Promise<{ geciciListe: FarklılarListesiData[], farklilar: FarklılarListesiData[] } | { error: string }> {
 
         const isSigortaliListesiBelgesi = texts.some(t =>
             t.trim().toLocaleLowerCase('tr-TR') === 'sigortalı hizmet listesi'
@@ -218,8 +286,50 @@ export class PdfAnalizService {
             }
         }
 
+
+        const farklilar: FarklılarListesiData[] = [];
+
+        if (geciciListe.length > 0 && gunDetayliRaporPersoneller) {
+            geciciListe.forEach(sgkPersonel => {
+                let izinliGun = 0;
+                //Gün detaylı rapordakilerle eşleşen personeller
+                const personel = gunDetayliRaporPersoneller.find(p =>
+                    (p.ad + ' ' + p.soyAd).trim().toLocaleUpperCase('tr-TR') === (sgkPersonel.ad + ' ' + sgkPersonel.soyAd).trim().toLocaleUpperCase('tr-TR')
+                );
+
+                // Personel kaydı ile eşleşen personeller tablosundaki kayıt
+                /*  const personelKaydi = personeller.find(p =>
+                     (p.AdSoyad).trim().toLocaleUpperCase('tr-TR') === (sgkPersonel.ad + ' ' + sgkPersonel.soyAd).trim().toLocaleUpperCase('tr-TR')
+                 ); */
+
+                if (personel) {
+                    // Gün sayısı kontrolü
+                    const sgkGun = sgkPersonel.Gun ?? 0;
+                    const beklenenGun = parseInt(personel.sigortaPrimiIsverenHissesi);
+                    let aciklama = '';
+
+                    if (sgkGun > beklenenGun || sgkGun < beklenenGun) {
+                        aciklama = `${personel?.ad} ${personel?.soyAd} ${beklenenGun} olması gerekmektedir.`;
+
+                        /* if (personelKaydi && personelKaydi.IzinliGunSayisi > 0) {
+                            izinliGun = personelKaydi.IzinliGunSayisi;
+                        } */
+
+                        farklilar.push({
+                            ...sgkPersonel,
+                            Aciklama: aciklama,
+                            izinliGun
+                        });
+                    }
+                }
+            });
+        }
+
+
+
         return {
-            geciciListe
+            geciciListe,
+            farklilar
         };
     }
 
@@ -280,9 +390,9 @@ export class PdfAnalizService {
 
         const pdfAyNumarasi = ayToNumber[ay];
 
-        if (pdfAyNumarasi !== seciliDonem.Ay || parseInt(yil) !== seciliDonem.Yil) {
+        /* if (pdfAyNumarasi !== seciliDonem.Ay || parseInt(yil) !== seciliDonem.Yil) {
             return { error: `Yüklediğiniz PDF belgesi ile seçili dönem uyuşmamaktadır. Lütfen ${seciliDonem.DonemAdi ? seciliDonem.DonemAdi + ' dönemine' : 'seçilen döneme'} ait belgeyi yükleyiniz.` }
-        }
+        } */
 
         const startIndex = allTexts.findIndex((t: any) =>
             t.includes('BİLDİRİM KAPSAMINDA BULUNAN İŞYERLERİNİN ÇALIŞANLARINA İLİŞKİN BİLGİLER')

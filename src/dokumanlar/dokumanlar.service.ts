@@ -332,6 +332,10 @@ export class DokumanlarService {
             }
 
             let pdfDataAnaliz = null;
+            if (belgeAdi === 'CalismaSureleri') {
+                pdfDataAnaliz = await this.parsePDF(dokuman.CalismaSureleri);
+            }
+
             if (belgeAdi === 'SGKHizmet') {
                 pdfDataAnaliz = await this.parsePDF(dokuman.SGKHizmet);
             }
@@ -358,52 +362,70 @@ export class DokumanlarService {
                 throw new BadRequestException('Dosya okunamadı.');
             }
 
-            if (belgeAdi === 'SGKHizmet') {
-                const sgkHizmet: any = await this.analizService.sgkHizmetMp(pdfDataAnaliz.texts, dokuman.Donem);
-                if ('error' in sgkHizmet) {
-                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'SGKHizmet');
+            if (belgeAdi === 'CalismaSureleri') {
+                const calismaSureleri: any = await this.analizService.calismaSureleriMp(pdfDataAnaliz.texts, dokuman.Donem);
+                if ('error' in calismaSureleri) {
+                    return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
                 }
-                return { sgkHizmet };
+                return { calismaSureleri };
+            }
+
+            if (belgeAdi === 'SGKHizmet') {
+                const calismaSureleriParsed = await this.parsePDF(dokuman.CalismaSureleri);
+                const calismaSureleri: any = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, dokuman.Donem);
+                if ('error' in calismaSureleri) {
+                    return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+                }
+                const sgkHizmet: any = await this.analizService.sgkHizmetMp(pdfDataAnaliz.texts, dokuman.Donem, calismaSureleri);
+                if ('error' in sgkHizmet) {
+                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
+                }
+                return { sgkHizmet, calismaSureleri };
             }
 
             if (belgeAdi === 'MuhtasarVePrim') {
+                const calismaSureleriParsed = await this.parsePDF(dokuman.CalismaSureleri);
+                const calismaSureleri: any = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, dokuman.Donem);
+                if ('error' in calismaSureleri) {
+                    return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+                }
                 const sgkParsed = await this.parsePDF(dokuman.SGKHizmet);
-                const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, dokuman.Donem);
+                const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, dokuman.Donem, calismaSureleri);
                 if ('error' in sgkHizmet) {
-                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'SGKHizmet');
+                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
                 }
 
                 // 3. Muhtasar Ve Prim PDF'ini analiz et
                 const muhtasarParsed = await this.parseBufferToPages(pdfDataAnaliz);
                 const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, dokuman.Donem, sgkHizmet.geciciListe ?? []);
                 /*  if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-                     const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'MuhtasarVePrim');
+                     const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'MuhtasarVePrim');
                      return { ...sonuc, muhtasar }
                  }
   */
-                return { sgkHizmet, muhtasar };
+                return { calismaSureleri, sgkHizmet, muhtasar };
             }
 
             if (belgeAdi === 'OnayliSGKHizmet') {
-                const onayliSgkHizmet: any = await this.analizService.sgkHizmetMp(pdfDataAnaliz.texts, dokuman.Donem);
+                const onayliSgkHizmet: any = await this.analizService.sgkHizmetMp(pdfDataAnaliz.texts, dokuman.Donem, null);
                 if ('error' in onayliSgkHizmet) {
-                    return await this.returnWithError(dokuman, 'error' in onayliSgkHizmet ? onayliSgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'OnayliSGKHizmet');
+                    return await this.returnWithError(dokuman, 'error' in onayliSgkHizmet ? onayliSgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliSGKHizmet');
                 }
                 return { onayliSgkHizmet };
             }
 
             if (belgeAdi === 'OnayliMuhtasarVePrim') {
                 const sgkParsed = await this.parsePDF(dokuman.OnayliSGKHizmet);
-                const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, dokuman.Donem);
+                const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, dokuman.Donem, null);
                 if ('error' in sgkHizmet) {
-                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'OnayliSGKHizmet');
+                    return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliSGKHizmet');
                 }
 
                 // 3. Muhtasar Ve Prim PDF'ini analiz et
                 const muhtasarParsed = await this.parseBufferToPages(pdfDataAnaliz);
                 const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, dokuman.Donem, sgkHizmet.geciciListe ?? []);
                 /*  if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-                     const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliMuhtasarVePrim');
+                     const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 5, 'OnayliMuhtasarVePrim');
                      return { ...sonuc, muhtasar }
                  }
   */
@@ -413,7 +435,7 @@ export class DokumanlarService {
             if (belgeAdi === 'SGKTahakkuk') {
                 const sgkTahakkuk: any = await this.analizService.tahakkukFisiMp(pdfDataAnaliz.texts, dokuman.Donem);
                 if ('error' in sgkTahakkuk) {
-                    return await this.returnWithError(dokuman, sgkTahakkuk.error, 5, 'SGKTahakkuk');
+                    return await this.returnWithError(dokuman, sgkTahakkuk.error, 6, 'SGKTahakkuk');
                 }
                 return { sgkTahakkuk };
             }
@@ -549,8 +571,10 @@ export class DokumanlarService {
             const seciliDonem = await this.getDonem(dokuman ?? null, data);
 
             switch (data.belgeAdi) {
+                case 'CalismaSureleri':
+                    return await this.handleCalismaSureleri(buffer, data, userId, filePath, dokuman ?? null, seciliDonem);
                 case 'SGKHizmet':
-                    return await this.handleSGKHizmet(buffer, data, userId, filePath, dokuman ?? null, seciliDonem);
+                    return await this.handleSGKHizmet(buffer, data, userId, filePath, dokuman, seciliDonem);
                 case 'MuhtasarVePrim':
                     return await this.handleMuhtasarVePrim(buffer, data, userId, filePath, dokuman, seciliDonem, isOrtagiList);
                 case 'OnayliSGKHizmet':
@@ -572,6 +596,12 @@ export class DokumanlarService {
 
     //pdf yi tek parça parse atmek için
     private async parsePDF(filePath: string): Promise<{ texts: string[], rawData: any }> {
+        // 1. Dosya var mı kontrol et
+        if (!fs.existsSync(filePath)) {
+            return { texts: [], rawData: null }
+        }
+
+        // 2. PDF parser işlemi
         return new Promise((resolve, reject) => {
             const pdfParser = new PDFParser();
 
@@ -581,7 +611,6 @@ export class DokumanlarService {
 
             pdfParser.on('pdfParser_dataReady', (pdfData) => {
                 try {
-                    // Tüm metinleri birleştir
                     const allTexts: string[] = [];
 
                     pdfData.Pages?.forEach((page: any) => {
@@ -614,6 +643,10 @@ export class DokumanlarService {
             texts: { str: string; x: number; y: number }[];
         }[];
     }> {
+        if (!fs.existsSync(filePath)) {
+            throw new BadRequestException(`PDF dosyası bulunamadı: ${filePath}`);
+        }
+
         try {
             return new Promise((resolve, reject) => {
                 const pdfParser = new PDFParser();
@@ -672,11 +705,12 @@ export class DokumanlarService {
 
     private async deleteOldFile(siraNo: number, dokuman: Dokumanlar) {
         const fileMap = {
-            1: dokuman.SGKHizmet,
-            2: dokuman.MuhtasarVePrim,
-            3: dokuman.OnayliSGKHizmet,
-            4: dokuman.OnayliMuhtasarVePrim,
-            5: dokuman.SGKTahakkuk,
+            1: dokuman.CalismaSureleri,
+            2: dokuman.SGKHizmet,
+            3: dokuman.MuhtasarVePrim,
+            4: dokuman.OnayliSGKHizmet,
+            5: dokuman.OnayliMuhtasarVePrim,
+            6: dokuman.SGKTahakkuk,
 
         };
 
@@ -696,7 +730,7 @@ export class DokumanlarService {
         if (data.SiraNo > dokuman.SurecSirasi || !dokuman.ID) {
             dokuman.SurecSirasi = data.SiraNo;
         }
-        dokuman.Durum = data.SiraNo === 3 ? 'Tamamlandı' : 'Hazırlanıyor';
+        dokuman.Durum = data.SiraNo === 4 ? 'Tamamlandı' : 'Hazırlanıyor';
         dokuman.KullaniciID = userId;
 
 
@@ -707,11 +741,12 @@ export class DokumanlarService {
         dokuman.Hatalar = JSON.stringify([...newHatalar.filter(i => i.siraNo !== data.islemSiraNo)]);
 
         const fileMap = {
-            1: 'SGKHizmet',
-            2: 'MuhtasarVePrim',
-            3: 'OnayliSGKHizmet',
-            4: 'OnayliMuhtasarVePrim',
-            5: 'SGKTahakkuk'
+            1: 'CalismaSureleri',
+            2: 'SGKHizmet',
+            3: 'MuhtasarVePrim',
+            4: 'OnayliSGKHizmet',
+            5: 'OnayliMuhtasarVePrim',
+            6: 'SGKTahakkuk'
         };
 
         if (filePath && fileMap[data.islemSiraNo]) {
@@ -757,7 +792,7 @@ export class DokumanlarService {
         }
 
         // Eski dosyayı sil
-        if (filePath) {
+        if (filePath && fs.existsSync(filePath)) {
             await this.deleteOldFile(data.islemSiraNo, dokuman);
         }
 
@@ -784,6 +819,70 @@ export class DokumanlarService {
         fs.writeFileSync(tmpFile.name, buffer);
         return await this.parsePDF(tmpFile.name);
     }
+
+    private async handleCalismaSureleri(
+        buffer: Buffer,
+        data: CreateProjeRaporDto,
+        userId: number,
+        filePath: string | null,
+        dokuman: Dokumanlar | null,
+        seciliDonem: Donem
+    ) {
+
+        if (!buffer) {
+            return { error: 'PDF içeriği alınamadı', belge: 'CalismaSureleri' };
+        }
+
+
+        const calismaSureleriParsed = await this.parseBufferToText(buffer);
+
+        // Eğer önceden rapor ve Muhtasar yüklenmişse
+        if (dokuman) {
+            if (dokuman.Onaylimi) {
+                return { error: 'Onay işlemi tamamlanmış, değişiklik yapılamaz', belge: 'CalismaSureleri' };
+            }
+
+            const calismaSureleri = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, seciliDonem);
+            if ('error' in calismaSureleri) {
+                return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+            }
+
+            if (dokuman?.SGKHizmet) {
+                const sgkHizmetParsed = await this.parsePDF(dokuman.SGKHizmet);
+                if (sgkHizmetParsed.texts?.length > 0) {
+                    const sgkHizmet = await this.analizService.sgkHizmetMp(sgkHizmetParsed.texts, seciliDonem, calismaSureleri);
+                    if ('error' in sgkHizmet) {
+                        return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
+                    }
+                    if (dokuman?.MuhtasarVePrim) {
+                        const muhtasarParsed = await this.parsePDFPages(dokuman.MuhtasarVePrim);
+                        const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, seciliDonem, sgkHizmet.geciciListe ?? [], false);
+                        if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
+                            return await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'MuhtasarVePrim');
+                        }
+                    }
+                }
+
+
+
+
+            }
+            const updated = await this.updateExistingReport({ ...data, islemSiraNo: 1 }, userId, filePath);
+            const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
+            return { personelListesi: calismaSureleri, dokuman: saved };
+        }
+        const calismaSureleri = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, seciliDonem);
+        if ('error' in calismaSureleri) {
+            const newRapor = dokuman ? dokuman : await this.createNewReport({ ...data, islemSiraNo: 1 }, userId, null);
+            return await this.returnWithError(newRapor, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+        }
+
+        const newRapor = await this.createNewReport({ ...data, islemSiraNo: 1 }, userId, filePath);
+        const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(newRapor)).ID);
+        return { personelListesi: calismaSureleri, dokuman: saved };
+    }
+
+
     private async handleSGKHizmet(
         buffer: Buffer,
         data: CreateProjeRaporDto,
@@ -792,6 +891,13 @@ export class DokumanlarService {
         dokuman: Dokumanlar | null,
         seciliDonem: Donem
     ) {
+        if (!dokuman) {
+            return { error: 'Doküman bulunamadı', belge: 'MuhtasarVePrim' };
+        }
+
+        if (dokuman.Onaylimi) {
+            return { error: 'Onay işlemi tamamlanmış, değişiklik yapılamaz', belge: 'MuhtasarVePrim' };
+        }
 
         if (!buffer) {
             return { error: 'PDF içeriği alınamadı', belge: 'SGKHizmet' };
@@ -806,29 +912,40 @@ export class DokumanlarService {
                 return { error: 'Onay işlemi tamamlanmış, değişiklik yapılamaz', belge: 'SGKHizmet' };
             }
 
-            const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
+            const calismaSureleriParsed = await this.parsePDF(dokuman.CalismaSureleri);
+            const calismaSureleri = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, seciliDonem);
+            if ('error' in calismaSureleri) {
+                return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+            }
+
+            const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, calismaSureleri);
             if ('error' in sgkHizmet) {
-                return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'SGKHizmet');
+                return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
             }
 
             const muhtasarParsed = await this.parsePDFPages(dokuman.MuhtasarVePrim);
             const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, seciliDonem, sgkHizmet.geciciListe ?? [], false);
             if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-                return await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'MuhtasarVePrim');
+                return await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'MuhtasarVePrim');
             }
 
-            const updated = await this.updateExistingReport({ ...data, islemSiraNo: 1 }, userId, filePath);
+            const updated = await this.updateExistingReport({ ...data, islemSiraNo: 2 }, userId, filePath);
             const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
             return { personelListesi: sgkHizmet, dokuman: saved };
         }
 
-        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
-        if ('error' in sgkHizmet) {
-            const newRapor = dokuman ? dokuman : await this.createNewReport({ ...data, islemSiraNo: 1 }, userId, null);
-            return await this.returnWithError(newRapor, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'SGKHizmet');
+        const calismaSureleriParsed = await this.parsePDF(dokuman.CalismaSureleri);
+        const calismaSureleri = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, seciliDonem);
+        if ('error' in calismaSureleri) {
+            return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
         }
 
-        const newRapor = await this.createNewReport({ ...data, islemSiraNo: 1 }, userId, filePath);
+        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, calismaSureleri);
+        if ('error' in sgkHizmet) {
+            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
+        }
+
+        const newRapor = await this.updateExistingReport({ ...data, islemSiraNo: 2 }, userId, filePath);
         const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(newRapor)).ID);
         return { personelListesi: sgkHizmet, dokuman: saved };
     }
@@ -861,23 +978,27 @@ export class DokumanlarService {
         }
 
 
-
+        const calismaSureleriParsed = await this.parsePDF(dokuman.CalismaSureleri);
+        const calismaSureleri = await this.analizService.calismaSureleriMp(calismaSureleriParsed.texts, seciliDonem);
+        if ('error' in calismaSureleri) {
+            return await this.returnWithError(dokuman, 'error' in calismaSureleri ? calismaSureleri.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'CalismaSureleri');
+        }
         // 2. SGK Hizmet PDF'ini analiz et
         const sgkParsed = await this.parsePDF(dokuman.SGKHizmet);
-        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
+        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, calismaSureleri);
         if ('error' in sgkHizmet) {
-            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 1, 'SGKHizmet');
+            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'SGKHizmet');
         }
 
         // 3. Muhtasar Ve Prim PDF'ini analiz et
         const muhtasarParsed = await this.parseBufferToPages(buffer);
         const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, seciliDonem, sgkHizmet.geciciListe ?? [], isOrtagiList);
         if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-            const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 2, 'MuhtasarVePrim');
+            const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'MuhtasarVePrim');
             return { ...sonuc, muhtasar }
         }
 
-        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 2 }, userId, filePath);
+        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 3 }, userId, filePath);
         const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
         return { personelListesi: muhtasar, projeRaporu: saved };
     }
@@ -904,28 +1025,28 @@ export class DokumanlarService {
                 return { error: 'Onay işlemi tamamlanmış, değişiklik yapılamaz', belge: 'OnayliSGKHizmet' };
             }
 
-            const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
+            const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, null);
             if ('error' in sgkHizmet) {
-                return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'OnayliSGKHizmet');
+                return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliSGKHizmet');
             }
 
             const muhtasarParsed = await this.parsePDFPages(dokuman.OnayliMuhtasarVePrim);
             const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, seciliDonem, sgkHizmet.geciciListe ?? [], false);
             if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-                return await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliMuhtasarVePrim');
+                return await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 5, 'OnayliMuhtasarVePrim');
             }
 
-            const updated = await this.updateExistingReport({ ...data, islemSiraNo: 3 }, userId, filePath);
+            const updated = await this.updateExistingReport({ ...data, islemSiraNo: 4 }, userId, filePath);
             const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
             return { personelListesi: sgkHizmet, dokuman: saved };
         }
 
-        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
+        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, null);
         if ('error' in sgkHizmet) {
-            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'OnayliSGKHizmet');
+            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 5, 'OnayliSGKHizmet');
         }
 
-        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 3 }, userId, filePath);
+        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 4 }, userId, filePath);
         const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
         return { personelListesi: sgkHizmet, dokuman: saved };
     }
@@ -955,20 +1076,20 @@ export class DokumanlarService {
 
         // 2. SGK Hizmet PDF'ini analiz et
         const sgkParsed = await this.parsePDF(dokuman.OnayliSGKHizmet);
-        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem);
+        const sgkHizmet = await this.analizService.sgkHizmetMp(sgkParsed.texts, seciliDonem, null);
         if ('error' in sgkHizmet) {
-            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 3, 'OnayliSGKHizmet');
+            return await this.returnWithError(dokuman, 'error' in sgkHizmet ? sgkHizmet.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliSGKHizmet');
         }
 
         // 3. Muhtasar Ve Prim PDF'ini analiz et
         const muhtasarParsed = await this.parseBufferToPages(buffer);
         const muhtasar = await this.analizService.muhtasarVePrimMp(muhtasarParsed, seciliDonem, sgkHizmet.geciciListe ?? [], isOrtagiList);
         if ('error' in muhtasar || ('personelListesi' in muhtasar && 'farklilar' in muhtasar.personelListesi && muhtasar.personelListesi.farklilar.length > 0)) {
-            const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 4, 'OnayliMuhtasarVePrim');
+            const sonuc = await this.returnWithError(dokuman, 'error' in muhtasar ? muhtasar.error : 'Personel listesinde uyuşmazlıklar tespit edildi', 5, 'OnayliMuhtasarVePrim');
             return { ...sonuc, muhtasar }
         }
 
-        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 4 }, userId, filePath);
+        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 5 }, userId, filePath);
         const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
         return { personelListesi: muhtasar, projeRaporu: saved };
     }
@@ -996,10 +1117,10 @@ export class DokumanlarService {
 
         const sgkTahakkuk = await this.analizService.tahakkukFisiMp(sgkTahakkukParsed.texts, seciliDonem);
         if ('error' in sgkTahakkuk) {
-            return await this.returnWithError(dokuman, sgkTahakkuk.error, 5, 'SGKTahakkuk');
+            return await this.returnWithError(dokuman, sgkTahakkuk.error, 6, 'SGKTahakkuk');
         }
 
-        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 5 }, userId, filePath);
+        const updated = await this.updateExistingReport({ ...data, islemSiraNo: 6 }, userId, filePath);
         const saved = await this.saveAndFetchReport((await this.DokumanlarRepository.save(updated)).ID);
         return { data: sgkTahakkuk, dokuman: saved };
     }
@@ -1154,7 +1275,7 @@ export class DokumanlarService {
                 throw new BadRequestException('Açıklama alanı boş bırakılamaz');
             }
             const projeRaporu = await this.DokumanlarRepository.findOne({
-                where: { ID:RaporID },
+                where: { ID: RaporID },
                 relations: { Donem: true }
             });
             if (!projeRaporu) {

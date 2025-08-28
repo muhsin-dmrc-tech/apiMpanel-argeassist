@@ -23,6 +23,9 @@ export class Dokumanlar {
   DonemID: number;
 
   @Column({ nullable: true, type: 'varchar', length: '255' })
+  CalismaSureleri: string;
+
+  @Column({ nullable: true, type: 'varchar', length: '255' })
   SGKHizmet: string;
 
   @Column({ nullable: true, type: 'varchar', length: '255' })
