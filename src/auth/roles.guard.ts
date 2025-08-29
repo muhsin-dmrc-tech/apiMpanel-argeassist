@@ -29,7 +29,6 @@ export class RolesGuard implements CanActivate {
     if (!user) {
       throw new UnauthorizedException('User not found in request');
     }
-
     // Kullanıcı tipi uygun mu kontrol et
     if (typeof user.userTypeEnum !== 'number' && !Array.isArray(user.userTypeEnum)) {
       throw new UnauthorizedException('Invalid user role format');

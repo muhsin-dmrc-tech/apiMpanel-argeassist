@@ -90,14 +90,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 3600000 } })
   async logout(@Request() req) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
 
     const userAgent = req.headers['user-agent'];
     const platform = this.detectPlatform(userAgent);
-
-    console.log('Platform:', platform); // 'android', 'ios', 'web'
 
     return this.authService.logout(req.user.userId, platform === 'unknown' ? 'web' : platform);
   }
@@ -137,7 +135,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('user')
   async getCurrentUser(@Request() req) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
     return this.authService.getCurrentUser(req.user.userId);
@@ -159,12 +157,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('update-password')
   async updatePassword(@Body() updatePasswordDto: ChangePasswordDto, @Request() req) {
-    if (!req.user) {
-      throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
-    }
-
     if (!req.user.userId) {
-      throw new BadRequestException('User ID is required');
+      throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
     return this.authService.updatePassword(updatePasswordDto, Number(req.user.userId));
   }
@@ -173,12 +167,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('email-update')
   async updateEmail(@Body() data: { email: string }, @Request() req) {
-    if (!req.user) {
-      throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
-    }
-
     if (!req.user.userId) {
-      throw new BadRequestException('User ID zorunludur');
+      throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
     if (!data.email) {
       throw new BadRequestException('E-posta adresi zorunludur');
@@ -191,7 +181,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('user-info-update')
   async updateUserInfo(@Body() data: any, @Request() req) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
     return this.authService.updateUserInfo(data?.fullName,data?.firmaAdi, data?.phoneNumber, Number(req.user.userId));
@@ -216,7 +206,7 @@ export class AuthController {
     @Request() req,
     @UploadedFile() file: Express.Multer.File
   ) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
 
@@ -256,7 +246,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('delete-avatar')
   async avatarDelete(@Request() req,) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
 
@@ -268,7 +258,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('account-delete')
   async accountDelete(@Request() req,) {
-    if (!req.user) {
+    if (!req.user.userId) {
       throw new UnauthorizedException('Kullanıcı Kimliği gereklidir');
     }
 

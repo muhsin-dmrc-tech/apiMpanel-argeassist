@@ -5,7 +5,7 @@ import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
     handleRequest(err:any, user:any, info:any) {
-        if (err || !user) {
+        if (err || !user || !user.userId) {
           if (info instanceof jwt.JsonWebTokenError) {
             throw new UnauthorizedException('Geçersiz veya süresi dolmuş jeton');
           }

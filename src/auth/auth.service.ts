@@ -58,7 +58,7 @@ export class AuthService {
     // Kullanıcıyı e-posta ile bul
     const user = await this.dataSource.getRepository(Kullanicilar).findOne({
       where: { Email: email },
-      select: ['id', 'Email', 'Sifre', 'deletedAt', 'KullaniciTipi', 'AdSoyad', 'isVerified', 'isTwoFactorEnabled'], // Şifreyi buraya ekliyoruz
+      select: ['id', 'Email', 'Sifre', 'deletedAt', 'KullaniciTipi', 'AdSoyad', 'isVerified', 'isTwoFactorEnabled','role'], // Şifreyi buraya ekliyoruz
     });
 
     if (!user) {
@@ -253,11 +253,13 @@ export class AuthService {
 
       try {
         const payloadUser = {
-          KullaniciId: user.id,
-          Email: user.Email,
+          userId: user.id,
+          email: user.Email,
           role: user.role,
-          KullaniciTipi: user.KullaniciTipi
+          userTypeEnum: user.KullaniciTipi
         };
+
+     
         await this.dataSource.getRepository(Kullanicilar).update(user.id, {
           isActive: true,
         });
@@ -431,7 +433,6 @@ export class AuthService {
         where: { id: userId },
         relations: ['Cihazlar']
       });
-
       if (!user) {
         throw new BadRequestException('Kullanıcı bulunamadı');
       }
@@ -607,7 +608,6 @@ export class AuthService {
         where: { Email: payload.email },
         select: ['id', 'Email', 'Sifre', 'deletedAt', 'KullaniciTipi']
       });
-
       if (!user) {
         throw new BadRequestException('Kullanıcı bulunamadı');
       }
@@ -645,10 +645,10 @@ export class AuthService {
         isActive: true
       });
       const payloadlogin = {
-        KullaniciId: user.id,
-        Email: user.Email,
+        userId: user.id,
+        email: user.Email,
         role: user.role,
-        KullaniciTipi: user.KullaniciTipi
+        userTypeEnum: user.KullaniciTipi
       };
 
       return {
